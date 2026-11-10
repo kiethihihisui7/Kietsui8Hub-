@@ -1,0 +1,4144 @@
+--[[
+Tuấn kiệt Script – Menu giao diện (chỉ UI) cho Roblox Studio
+	Cách dùng:
+	  1. Studio → StarterGui → Insert Object → LocalScript
+	  2. Dán toàn bộ code này vào LocalScript
+	  3. Gắn logic game CỦA BẠN vào bảng Callbacks bên dưới
+	Mỗi tab ở thanh bên trái là MỘT TRANG RIÊNG: Thông Tin, Player,
+	ESP, Forest, Cài Đặt. Bấm tab nào thì chỉ hiện nội dung của tab đó.
+	Forest: Tự Động Chặt Cây - tự dịch chuyển tới khu Forest (-15.86, 3.22, -63.70), cầm rìu và chặt cây gần nhất; cây ĐỔ (HP = 0 / thanh HP biến mất / trứng xuất hiện) thì dịch chuyển sang cây khác. Chỉnh từ khóa cây / rìu / thanh HP / trứng ở khối "TAB FOREST" gần cuối file.
+	Forest: Tự Động Nhặt Egg - tự dịch chuyển tới từng quả trứng (egg) QUANH CHỖ PLAYER ĐANG ĐỨNG lúc bật công tắc (không cố định theo tọa độ; muốn đổi chỗ thì tắt rồi bật lại ở chỗ mới) và nhặt (chạm / ProximityPrompt / ClickDetector); không nhặt trứng của người chơi khác; Tự Động Nhặt Egg và Tự Động Chặt Cây loại trừ nhau: bật cái này thì cái kia tự tắt. Thanh trượt "Số Egg Cần Nhặt" (0 = không giới hạn): nhặt đủ số lượng HOẶC hết trứng quanh đó (chờ EGG_EMPTY_WAIT giây; tắt bằng EGG_FINISH_WHEN_EMPTY = false) thì dịch chuyển về vị trí mảnh đất rồi tự tắt, KHÔNG quay lại nhặt nữa. Vị trí mảnh đất TỰ LƯU khi vào server (nút "Lưu Vị Trí Này" để lưu lại thủ công); chưa lưu được thì về EGG_HOME_POS (7.97, 3.22, 64.89). LƯU Ý: Chặt Ở Đâu Bật Ở Đó Để Nhặt (có khung ghi chú ngay dưới công tắc Nhặt Egg). Chỉnh ở nhóm EGG_PICK_* trong khối "TAB FOREST".
+	Forest (thẻ Forest gồm 10 công tắc chia 2 cột (mỗi hàng 2 chức năng): Chặt Cây Forest, Autumn, Sakura, Snow, Desert, Water, Vulcano, Celestial, Void và Nghĩa Trang Ma Ám, không có tab riêng): Tự Động Chặt Cây Autumn - giống Tự Động Chặt Cây Forest nhưng ở khu Autumn (-5.18, 3.22, -186.00); chỉnh AUTUMN_POS / AUTUMN_RADIUS trong khối "TAB FOREST". Sakura: Tự Động Chặt Cây Sakura - giống Autumn nhưng ở khu Sakura (-1.23, 3.22, -395.77); chỉnh SAKURA_POS / SAKURA_RADIUS. Snow: Tự Động Chặt Cây Snow - giống Sakura nhưng ở khu Snow (-3.08, 3.22, -688.73); chỉnh SNOW_POS / SNOW_RADIUS. Desert: Tự Động Chặt Cây Desert - giống Snow nhưng ở khu Desert (-8.64, 3.22, -1073.28); chỉnh DESERT_POS / DESERT_RADIUS. Water: Tự Động Chặt Cây Water - giống Desert nhưng ở khu Water (-4.91, 3.22, -1540.81); chỉnh WATER_POS / WATER_RADIUS. Vulcano: Tự Động Chặt Cây Vulcano - giống Water nhưng ở khu Vulcano (6.63, 3.22, -2048.78); chỉnh VULCANO_POS / VULCANO_RADIUS. Celestial: Tự Động Chặt Cây Celestial - giống Vulcano nhưng ở khu Celestial (-9.54, 3.22, -2697.90); chỉnh CELESTIAL_POS / CELESTIAL_RADIUS. Void: Tự Động Chặt Cây Void - giống Celestial nhưng ở khu Void (-3.63, 3.22, -3483.02); chỉnh VOID_POS / VOID_RADIUS. Nghĩa Trang Ma Ám: Tự Động Chặt Cây Nghĩa Trang Ma Ám - giống Void nhưng ở khu Nghĩa Trang Ma Ám (2.70, 3.22, -4219.51); chỉnh GRAVEYARD_POS / GRAVEYARD_RADIUS. Chặt Cây Forest, Autumn, Sakura, Snow, Desert, Water, Vulcano, Celestial, Void, Nghĩa Trang Ma Ám và Nhặt Egg loại trừ nhau: bật cái nào thì các cái kia tự tắt.
+	Phím RightShift: ẩn / hiện menu. Kéo thanh tiêu đề để di chuyển.
+	Tab vuông bên trái màn hình: bấm để ẩn / hiện menu chính, kéo để đổi vị trí.
+	Cài Đặt → Chuẩn Đoán: bảng FPS / Ping / bộ nhớ / vị trí / máu, log console, chép đường dẫn vật, quét Remote - giúp viết & gỡ lỗi script.
+	Cài Đặt → Quét Map: đọc & liệt kê TOÀN BỘ vật trong map (tên, loại, đường dẫn, vị trí, kích thước), lọc theo loại / bán kính, hiện nhãn 3D, sao chép / lưu file .txt / in console - để viết script dễ hơn.
+	Cài Đặt → Quét Vật Phẩm: tìm vật nhặt được (Prompt / Click / chạm), Tool rơi trong map, vật có tên giống vật phẩm (coin, gem, potion...), đồ trong Túi Đồ và kho ReplicatedStorage; lọc theo loại / bán kính, nhãn 3D, chép từng phần / lưu file .txt / in console.
+	Chữ menu: TOÀN BỘ chữ đổi 7 màu cầu vồng nhấp nháy (đỏ, cam, vàng, lục, lam, chàm, tím). Bật / tắt ở Cài Đặt → Chữ 7 Màu Nhấp Nháy; chỉnh tốc độ TEXT_STEP, kiểu TEXT_WAVE ở cuối file.
+	Cài Đặt: có thêm công tắc Tăng FPS 120 (giảm đồ họa + mở khóa 120 FPS nếu executor hỗ trợ setfpscap).
+	Player: God Mode, Speed Hack (mặc định BẬT, Tốc Độ Chạy 200; thanh trượt SPEED_MIN..SPEED_MAX), Jump Power (thanh trượt JUMP_MIN..JUMP_MAX), Full Health, Tàn Hình, Đi Xuyên Tường (Noclip), Bay (Fly - chuyển từ FlyGuiV3 của XNEO: thanh trượt Tốc Độ Bay + 2 nút nổi ▲ ▼ để lên / xuống) đã hoạt động.
+Chỉnh cỡ menu: W, H (khung), SIDE_W (thanh bên), ROW_H (độ cao mỗi chức năng).
+Chỉnh cỡ chữ menu chính: TEXT_SCALE (đang là 3 = to gấp 3 lần cỡ gốc; Roblox giới hạn tối đa 100).
+Thông báo chào mừng: ở cuối file, chỉnh WELCOME_TEXT / WELCOME_TIME / WELCOME_EVERY_OPEN. Tắt trong Cài Đặt → Hiển Thị Thông Báo.
+]]
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local GuiService = game:GetService("GuiService")
+local RunService = game:GetService("RunService")
+
+-- Link kênh Telegram (hiện ở trang Thông Tin)
+local TELEGRAM_URL = "https://t.me/VVDHackroblox"
+local TELEGRAM_SHORT = "t.me/VVDHackroblox"
+
+-- TikTok & thông tin ủng hộ (hiện ở trang Thông Tin)
+local TIKTOK_URL = "https://www.tiktok.com/@vudongroblox"
+local TIKTOK_SHORT = "tiktok.com/@vudongroblox"
+local BANK_NAME = "Techcombank"
+local BANK_NUMBER = "0336005854"
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+----------------------------------------------------------------
+-- SỬA LỖI MENU KHÔNG HIỆN: Luau chỉ cho tối đa 200 biến local ở cấp ngoài cùng,
+-- file gốc có ~250 nên script lỗi biên dịch. Toàn bộ logic nhân vật / ESP / FPS
+-- được gói trong khối do ... end bên dưới; chỉ các biến phần giao diện cần dùng
+-- mới khai báo trước ở đây.
+----------------------------------------------------------------
+local SPEED_MIN, SPEED_MAX, SPEED_DEFAULT
+local JUMP_MIN, JUMP_MAX, JUMP_DEFAULT
+local getHumanoid, setSpeedValue, setJumpValue
+local ESP_COLOR_NAMES, ESP_COLORS, espColor
+local Callbacks, FlyAPI
+do
+----------------------------------------------------------------
+-- LOGIC NHÂN VẬT: God Mode (Bất Tử) & Speed Hack (Tốc Độ)
+----------------------------------------------------------------
+local GOD_HP = 1e9 -- máu "vô hạn" (dùng số lớn thay vì math.huge để thanh máu không bị lỗi NaN)
+SPEED_MIN, SPEED_MAX, SPEED_DEFAULT = 4, 200, 200 -- khoảng tốc độ của thanh trượt (Roblox mặc định là 16); mặc định 200
+
+local godOn, speedOn = false, false
+local speedValue = SPEED_DEFAULT
+local baseMaxHealth, baseWalkSpeed = 100, 16 -- giá trị gốc của game, dùng để trả lại khi tắt
+local godConns, speedConn = {}, nil
+
+JUMP_MIN, JUMP_MAX, JUMP_DEFAULT = 10, 300, 100 -- khoảng sức nhảy của thanh trượt (Roblox mặc định JumpPower = 50)
+local jumpOn, fullOn = false, false
+local jumpValue = JUMP_DEFAULT
+local baseUseJump, baseJumpPower, baseJumpHeight = true, 50, 7.2 -- giá trị gốc của game
+local jumpConns, fullConn = {}, nil
+
+local invisOn = false -- Tàn Hình
+local invisConns, invisOrig = {}, {} -- kết nối sự kiện / Transparency gốc của từng phần thân
+local baseDisplayDist = Enum.HumanoidDisplayDistanceType.Viewer -- kiểu hiện tên + thanh máu gốc
+
+local noclipOn = false -- Đi Xuyên Tường
+local noclipConn = nil -- kết nối Stepped (chạy mỗi khung hình vật lý)
+local noclipOrig = setmetatable({}, { __mode = "k" }) -- các phần thân đã bị tắt CanCollide (để trả lại khi tắt)
+
+function getHumanoid()
+	local char = player.Character
+	return char and char:FindFirstChildOfClass("Humanoid")
+end
+
+local function clearGodConns()
+	for _, c in ipairs(godConns) do c:Disconnect() end
+	table.clear(godConns)
+end
+
+local function startGod(hum)
+	clearGodConns()
+	if hum.MaxHealth < GOD_HP then baseMaxHealth = hum.MaxHealth end
+	hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false) -- không cho nhân vật chết
+	if not hum.Parent:FindFirstChild("VuDongGodFF") then
+		local ff = Instance.new("ForceField") -- chặn sát thương, ẩn hiệu ứng
+		ff.Name, ff.Visible = "VuDongGodFF", false
+		ff.Parent = hum.Parent
+	end
+	hum.MaxHealth = GOD_HP
+	hum.Health = GOD_HP
+	table.insert(godConns, hum.HealthChanged:Connect(function(h)
+		if godOn and h < hum.MaxHealth then hum.Health = hum.MaxHealth end -- bị trừ máu thì hồi lại ngay
+	end))
+	table.insert(godConns, hum:GetPropertyChangedSignal("MaxHealth"):Connect(function()
+		if godOn and hum.MaxHealth ~= GOD_HP then
+			hum.MaxHealth = GOD_HP
+			hum.Health = GOD_HP
+		end
+	end))
+end
+
+local function stopGod(hum)
+	clearGodConns()
+	if hum and hum.Parent then
+		local ff = hum.Parent:FindFirstChild("VuDongGodFF")
+		if ff then ff:Destroy() end
+		hum:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+		hum.MaxHealth = baseMaxHealth
+		hum.Health = baseMaxHealth
+	end
+end
+
+local function startSpeed(hum)
+	if speedConn then speedConn:Disconnect() end
+	baseWalkSpeed = hum.WalkSpeed
+	hum.WalkSpeed = speedValue
+	speedConn = hum:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+		if speedOn and hum.WalkSpeed ~= speedValue then hum.WalkSpeed = speedValue end -- game đổi tốc độ thì đặt lại
+	end)
+end
+
+local function stopSpeed(hum)
+	if speedConn then
+		speedConn:Disconnect()
+		speedConn = nil
+	end
+	if hum and hum.Parent then hum.WalkSpeed = baseWalkSpeed end
+end
+
+-- thanh trượt gọi hàm này; đang bật Speed Hack thì áp dụng ngay
+function setSpeedValue(v)
+	speedValue = math.clamp(math.floor(v + 0.5), SPEED_MIN, SPEED_MAX)
+	if speedOn then
+		local hum = getHumanoid()
+		if hum then hum.WalkSpeed = speedValue end
+	end
+end
+
+local function clearJumpConns()
+	for _, c in ipairs(jumpConns) do c:Disconnect() end
+	table.clear(jumpConns)
+end
+
+local function startJump(hum)
+	clearJumpConns()
+	baseUseJump, baseJumpPower, baseJumpHeight = hum.UseJumpPower, hum.JumpPower, hum.JumpHeight
+	hum.UseJumpPower = true -- game dùng JumpHeight thì chuyển sang JumpPower để thanh trượt có tác dụng
+	hum.JumpPower = jumpValue
+	local function keep() -- game đổi lại thì đặt lại theo thanh trượt
+		if not jumpOn then return end
+		if not hum.UseJumpPower then hum.UseJumpPower = true end
+		if hum.JumpPower ~= jumpValue then hum.JumpPower = jumpValue end
+	end
+	table.insert(jumpConns, hum:GetPropertyChangedSignal("JumpPower"):Connect(keep))
+	table.insert(jumpConns, hum:GetPropertyChangedSignal("UseJumpPower"):Connect(keep))
+end
+
+local function stopJump(hum)
+	clearJumpConns()
+	if hum and hum.Parent then
+		hum.UseJumpPower = baseUseJump
+		hum.JumpPower = baseJumpPower
+		hum.JumpHeight = baseJumpHeight
+	end
+end
+
+-- thanh trượt gọi hàm này; đang bật Jump Power thì áp dụng ngay
+function setJumpValue(v)
+	jumpValue = math.clamp(math.floor(v + 0.5), JUMP_MIN, JUMP_MAX)
+	if jumpOn then
+		local hum = getHumanoid()
+		if hum then hum.JumpPower = jumpValue end
+	end
+end
+
+local function startFull(hum)
+	if fullConn then fullConn:Disconnect() end
+	if hum.Health > 0 then hum.Health = hum.MaxHealth end
+	fullConn = hum.HealthChanged:Connect(function(h)
+		if fullOn and h > 0 and h < hum.MaxHealth then hum.Health = hum.MaxHealth end -- mất máu là hồi đầy ngay
+	end)
+end
+
+local function stopFull()
+	if fullConn then
+		fullConn:Disconnect()
+		fullConn = nil
+	end
+end
+
+-- Tàn Hình: đặt Transparency = 1 cho mọi phần thân, phụ kiện, mặt (Decal) và ẩn tên / thanh máu trên đầu.
+-- Lưu giá trị gốc để trả lại khi tắt. Đồ mới xuất hiện (phụ kiện, tool cầm lên) cũng tự được ẩn.
+-- LƯU Ý: LocalScript chỉ đổi phía người chơi này; muốn người khác cũng không thấy thì cần Script + RemoteEvent phía server.
+local function clearInvisConns()
+	for _, c in ipairs(invisConns) do c:Disconnect() end
+	table.clear(invisConns)
+end
+
+local function hideInvisPart(inst)
+	if invisOrig[inst] ~= nil then return end -- đã xử lý rồi
+	local isPart = inst:IsA("BasePart") and inst.Name ~= "HumanoidRootPart"
+	if not (isPart or inst:IsA("Decal")) then return end -- Decal gồm cả Texture / mặt nhân vật
+	invisOrig[inst] = inst.Transparency
+	inst.Transparency = 1
+	table.insert(invisConns, inst:GetPropertyChangedSignal("Transparency"):Connect(function()
+		if invisOn and inst.Transparency ~= 1 then inst.Transparency = 1 end -- game đổi lại thì ẩn tiếp
+	end))
+end
+
+local function startInvis(char, hum)
+	clearInvisConns()
+	table.clear(invisOrig)
+	for _, d in ipairs(char:GetDescendants()) do
+		hideInvisPart(d)
+	end
+	table.insert(invisConns, char.DescendantAdded:Connect(function(d)
+		if invisOn then hideInvisPart(d) end
+	end))
+	if hum then
+		baseDisplayDist = hum.DisplayDistanceType
+		hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None -- ẩn tên + thanh máu
+	end
+end
+
+local function stopInvis(hum)
+	clearInvisConns() -- ngắt kết nối trước rồi mới trả lại giá trị gốc
+	for inst, t in pairs(invisOrig) do
+		if inst.Parent then inst.Transparency = t end
+	end
+	table.clear(invisOrig)
+	if hum and hum.Parent then hum.DisplayDistanceType = baseDisplayDist end
+end
+
+-- Đi Xuyên Tường (Noclip): tắt CanCollide của mọi phần thân mỗi khung hình vật lý (Humanoid hay tự bật lại
+-- nên phải đặt lại liên tục). Chỉ ghi nhớ những phần mà script đã tắt, để trả đúng trạng thái khi tắt.
+-- Vòng lặp tự đọc player.Character mỗi lần nên khi hồi sinh vẫn hoạt động, không cần gắn lại.
+local function startNoclip()
+	if noclipConn then noclipConn:Disconnect() end
+	noclipConn = RunService.Stepped:Connect(function()
+		local char = player.Character
+		if not (noclipOn and char) then return end
+		for _, d in ipairs(char:GetDescendants()) do
+			if d:IsA("BasePart") and d.CanCollide then
+				noclipOrig[d] = true
+				d.CanCollide = false
+			end
+		end
+	end)
+end
+
+local function stopNoclip()
+	if noclipConn then
+		noclipConn:Disconnect()
+		noclipConn = nil
+	end
+	for part in pairs(noclipOrig) do
+		if part.Parent then part.CanCollide = true end
+	end
+	table.clear(noclipOrig)
+end
+
+----------------------------------------------------------------
+-- LOGIC ESP: nhìn thấy người chơi khác xuyên tường
+-- (Highlight viền + tô màu, và Tên / Máu / Khoảng cách trên đầu)
+-- LƯU Ý: chỉ chạy phía người chơi này. Roblox chỉ vẽ tối đa ~31 Highlight cùng lúc.
+----------------------------------------------------------------
+ESP_COLOR_NAMES = { "Đỏ", "Xanh Lá", "Vàng", "Xanh Dương", "Trắng" }
+ESP_COLORS = {
+	["Đỏ"] = Color3.fromRGB(255, 60, 60),
+	["Xanh Lá"] = Color3.fromRGB(60, 230, 90),
+	["Vàng"] = Color3.fromRGB(255, 220, 50),
+	["Xanh Dương"] = Color3.fromRGB(50, 170, 255),
+	["Trắng"] = Color3.fromRGB(255, 255, 255),
+}
+espColor = ESP_COLORS["Đỏ"]
+
+local espHL, espName, espHP, espDist = false, false, false, false -- 4 công tắc ESP
+local espObjs = {} -- espObjs[plr] = { hl = Highlight, gui = BillboardGui, txt = TextLabel }
+local espPlrConns = {} -- espPlrConns[plr] = kết nối CharacterAdded của người đó
+local espGlobalConns = {} -- PlayerAdded / PlayerRemoving
+local espBeat, espLast = nil, 0
+
+local function espClear(plr)
+	local o = espObjs[plr]
+	if o then
+		if o.hl then o.hl:Destroy() end
+		if o.gui then o.gui:Destroy() end
+		espObjs[plr] = nil
+	end
+end
+
+local function espBuild(plr)
+	espClear(plr)
+	local char = plr.Character
+	if not char then return end
+	local head = char:FindFirstChild("Head") or char:WaitForChild("Head", 5)
+	if not head or plr.Character ~= char then return end
+
+	local hl = Instance.new("Highlight")
+	hl.Name = "VuDongESP"
+	hl.Adornee = char
+	hl.FillColor, hl.OutlineColor = espColor, Color3.new(1, 1, 1)
+	hl.FillTransparency, hl.OutlineTransparency = 0.6, 0
+	hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- hiện xuyên tường
+	hl.Enabled = espHL
+	hl.Parent = char
+
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "VuDongESPInfo"
+	gui.Adornee = head
+	gui.AlwaysOnTop = true
+	gui.Size = UDim2.fromOffset(220, 70)
+	gui.StudsOffset = Vector3.new(0, 3, 0)
+	gui.Enabled = espName or espHP or espDist
+	gui.Parent = head
+
+	local txt = Instance.new("TextLabel")
+	txt.BackgroundTransparency = 1
+	txt.Size = UDim2.fromScale(1, 1)
+	txt.Font = Enum.Font.SourceSansBold
+	txt.TextSize = 16
+	txt.RichText = true
+	txt.TextColor3 = espColor
+	txt.TextStrokeTransparency = 0.3
+	txt.Text = ""
+	txt.Parent = gui
+
+	espObjs[plr] = { hl = hl, gui = gui, txt = txt }
+end
+
+-- cập nhật bật/tắt từng phần + nội dung chữ (gọi ~10 lần/giây)
+local function espUpdate()
+	local myHum = getHumanoid()
+	local myRoot = myHum and myHum.RootPart
+	local showGui = espName or espHP or espDist
+	for plr, o in pairs(espObjs) do
+		local char = plr.Character
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if hum and o.gui.Parent then
+			o.hl.Enabled = espHL
+			o.hl.FillColor = espColor
+			o.gui.Enabled = showGui
+			if showGui then
+				o.txt.TextColor3 = espColor
+				local lines = {}
+				if espName then
+					table.insert(lines, plr.DisplayName)
+				end
+				if espHP then
+					local ratio = hum.MaxHealth > 0 and math.clamp(hum.Health / hum.MaxHealth, 0, 1) or 0
+					local col = Color3.fromRGB(255, 60, 60):Lerp(Color3.fromRGB(60, 230, 90), ratio)
+					table.insert(lines, '<font color="#' .. col:ToHex() .. '">❤ ' .. math.floor(hum.Health) .. "</font>")
+				end
+				if espDist and myRoot and hum.RootPart then
+					table.insert(lines, math.floor((hum.RootPart.Position - myRoot.Position).Magnitude) .. " m")
+				end
+				o.txt.Text = table.concat(lines, "\n")
+			end
+		end
+	end
+end
+
+local function espHook(plr)
+	if plr == player or espPlrConns[plr] then return end
+	espPlrConns[plr] = plr.CharacterAdded:Connect(function()
+		task.spawn(espBuild, plr)
+	end)
+	if plr.Character then task.spawn(espBuild, plr) end
+end
+
+local function espStopAll()
+	for _, c in ipairs(espGlobalConns) do c:Disconnect() end
+	table.clear(espGlobalConns)
+	for _, c in pairs(espPlrConns) do c:Disconnect() end
+	table.clear(espPlrConns)
+	for plr in pairs(espObjs) do espClear(plr) end
+	if espBeat then
+		espBeat:Disconnect()
+		espBeat = nil
+	end
+end
+
+-- mỗi lần bật/tắt công tắc ESP thì gọi hàm này: còn công tắc nào bật thì chạy, tắt hết thì dọn sạch
+local function espRefresh()
+	if espHL or espName or espHP or espDist then
+		if not espBeat then
+			for _, p in ipairs(Players:GetPlayers()) do espHook(p) end
+			table.insert(espGlobalConns, Players.PlayerAdded:Connect(espHook))
+			table.insert(espGlobalConns, Players.PlayerRemoving:Connect(function(plr)
+				local c = espPlrConns[plr]
+				if c then
+					c:Disconnect()
+					espPlrConns[plr] = nil
+				end
+				espClear(plr)
+			end))
+			espBeat = RunService.Heartbeat:Connect(function()
+				local now = os.clock()
+				if now - espLast < 0.1 then return end
+				espLast = now
+				espUpdate()
+			end)
+		end
+		espUpdate()
+	else
+		espStopAll()
+	end
+end
+
+----------------------------------------------------------------
+-- LOGIC ESP RƯƠNG: đánh dấu TẤT CẢ rương trong map (viền vàng + tên + khoảng cách, xuyên tường)
+-- Cách nhận biết: đối tượng (Model / Part) có tên chứa một trong CHEST_KEYWORDS.
+-- >>> Rương trong game của bạn tên khác thì sửa CHEST_KEYWORDS cho đúng tên đó. <<<
+-- LƯU Ý: nếu game bật StreamingEnabled thì rương ở xa (chưa tải) sẽ chưa hiện cho tới khi lại gần.
+----------------------------------------------------------------
+local CHEST_KEYWORDS = { "chest", "rương", "ruong" } -- viết thường; tìm theo kiểu "có chứa"
+local CHEST_IGNORE = { "plate", "armor", "armour" } -- bỏ qua tên chứa các từ này (vd: ChestPlate = áo giáp)
+local CHEST_COLOR = Color3.fromRGB(255, 200, 40)
+
+local chestOn = false
+local chestObjs = {} -- chestObjs[inst] = { hl = Highlight, gui = BillboardGui, txt = TextLabel, part = BasePart }
+local chestConns = {}
+local chestBeat, chestLast = nil, 0
+
+local function chestMatch(name)
+	local l = string.lower(name)
+	for _, bad in ipairs(CHEST_IGNORE) do
+		if string.find(l, bad, 1, true) then return false end
+	end
+	for _, kw in ipairs(CHEST_KEYWORDS) do
+		if string.find(l, kw, 1, true) then return true end
+	end
+	return false
+end
+
+local function chestClear(inst)
+	local o = chestObjs[inst]
+	if o then
+		if o.hl then o.hl:Destroy() end
+		if o.gui then o.gui:Destroy() end
+		chestObjs[inst] = nil
+	end
+end
+
+local function chestAdd(inst)
+	if chestObjs[inst] then return end
+	if not (inst:IsA("Model") or inst:IsA("BasePart")) then return end
+	if not chestMatch(inst.Name) then return end
+	-- nằm trong một rương đã đánh dấu rồi (vd: nắp rương) thì bỏ qua để khỏi trùng
+	local a = inst.Parent
+	while a and a ~= workspace do
+		if chestObjs[a] then return end
+		a = a.Parent
+	end
+	-- không đánh dấu đồ nằm trên người chơi
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr.Character and inst:IsDescendantOf(plr.Character) then return end
+	end
+	local part = inst:IsA("BasePart") and inst or inst.PrimaryPart or inst:FindFirstChildWhichIsA("BasePart", true)
+	if not part then return end
+
+	local hl = Instance.new("Highlight")
+	hl.Name = "VDMark"
+	hl.Adornee = inst
+	hl.FillColor, hl.OutlineColor = CHEST_COLOR, Color3.new(1, 1, 1)
+	hl.FillTransparency, hl.OutlineTransparency = 0.5, 0
+	hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop -- hiện xuyên tường
+	hl.Parent = inst
+
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "VDMarkInfo"
+	gui.Adornee = part
+	gui.AlwaysOnTop = true
+	gui.Size = UDim2.fromOffset(200, 50)
+	gui.StudsOffset = Vector3.new(0, 3, 0)
+	gui.Parent = part
+
+	local txt = Instance.new("TextLabel")
+	txt.BackgroundTransparency = 1
+	txt.Size = UDim2.fromScale(1, 1)
+	txt.Font = Enum.Font.SourceSansBold
+	txt.TextSize = 16
+	txt.TextColor3 = CHEST_COLOR
+	txt.TextStrokeTransparency = 0.3
+	txt.Text = "📦 " .. inst.Name
+	txt.Parent = gui
+
+	chestObjs[inst] = { hl = hl, gui = gui, txt = txt, part = part }
+end
+
+-- cập nhật khoảng cách (~4 lần/giây) và dọn rương đã biến mất
+local function chestUpdate()
+	local myHum = getHumanoid()
+	local myRoot = myHum and myHum.RootPart
+	for inst, o in pairs(chestObjs) do
+		if inst.Parent and o.part.Parent then
+			local t = "📦 " .. inst.Name
+			if myRoot then
+				t = t .. "\n" .. math.floor((o.part.Position - myRoot.Position).Magnitude) .. " m"
+			end
+			o.txt.Text = t
+		else
+			chestClear(inst)
+		end
+	end
+end
+
+local function chestStop()
+	for _, c in ipairs(chestConns) do c:Disconnect() end
+	table.clear(chestConns)
+	if chestBeat then
+		chestBeat:Disconnect()
+		chestBeat = nil
+	end
+	for inst in pairs(chestObjs) do chestClear(inst) end
+end
+
+local function chestRefresh()
+	if chestOn then
+		if chestBeat then return end
+		table.insert(chestConns, workspace.DescendantAdded:Connect(function(d)
+			if chestOn then chestAdd(d) end
+		end))
+		table.insert(chestConns, workspace.DescendantRemoving:Connect(function(d)
+			if chestObjs[d] then chestClear(d) end
+		end))
+		chestBeat = RunService.Heartbeat:Connect(function()
+			local now = os.clock()
+			if now - chestLast < 0.25 then return end
+			chestLast = now
+			chestUpdate()
+		end)
+		-- quét toàn bộ map (chia nhỏ để không bị giật)
+		task.spawn(function()
+			local n = 0
+			for _, d in ipairs(workspace:GetDescendants()) do
+				if not chestOn then return end
+				chestAdd(d)
+				n += 1
+				if n % 1500 == 0 then task.wait() end
+			end
+		end)
+	else
+		chestStop()
+	end
+end
+
+----------------------------------------------------------------
+-- LOGIC: Bay (Fly) - chuyển từ FlyGuiV3 (XNEO)
+-- Giữ nguyên cách bay của bản gốc: BodyGyro + BodyVelocity giữ nhân vật lơ lửng và quay theo camera,
+-- tắt các trạng thái Humanoid + đứng yên animation, đi theo hướng MoveDirection, UP / DOWN dịch
+-- HumanoidRootPart lên / xuống, thanh trượt = số "speeds" (1 = bản gốc mặc định).
+-- Khác bản gốc: không dùng biến global, chỉ MỘT vòng Heartbeat (bản gốc đẻ thêm vòng lặp mỗi lần bấm +/-),
+-- dùng dt nên tốc độ không đổi khi bật Tăng FPS 120, gắn vào HumanoidRootPart (R6 / R15 đều dùng chung),
+-- trả lại đúng trạng thái Humanoid cũ khi tắt, và tự bay lại sau khi hồi sinh.
+----------------------------------------------------------------
+local fly = { on = false, speed = 1, up = false, down = false, conn = nil, bg = nil, bv = nil, saved = {} }
+local FLY_MIN, FLY_MAX, FLY_DEFAULT = 1, 20, 1 -- khoảng tốc độ của thanh trượt (1 = tốc độ gốc của FlyGuiV3)
+local FLY_STATES = {
+	Enum.HumanoidStateType.Climbing, Enum.HumanoidStateType.FallingDown, Enum.HumanoidStateType.Flying,
+	Enum.HumanoidStateType.Freefall, Enum.HumanoidStateType.GettingUp, Enum.HumanoidStateType.Jumping,
+	Enum.HumanoidStateType.Landed, Enum.HumanoidStateType.Physics, Enum.HumanoidStateType.PlatformStanding,
+	Enum.HumanoidStateType.Ragdoll, Enum.HumanoidStateType.Running, Enum.HumanoidStateType.RunningNoPhysics,
+	Enum.HumanoidStateType.Seated, Enum.HumanoidStateType.StrafingNoPhysics, Enum.HumanoidStateType.Swimming,
+}
+fly.speed = FLY_DEFAULT
+
+local function flyClean() -- gỡ BodyGyro / BodyVelocity
+	if fly.bg then fly.bg:Destroy() fly.bg = nil end
+	if fly.bv then fly.bv:Destroy() fly.bv = nil end
+end
+
+local function flyTracks(hum, speed) -- đứng yên / trả lại animation đang chạy
+	pcall(function()
+		for _, t in ipairs(hum:GetPlayingAnimationTracks()) do t:AdjustSpeed(speed) end
+	end)
+end
+
+local function startFly(char, hum)
+	local root = char:FindFirstChild("HumanoidRootPart")
+	if not root then return end
+	flyClean()
+	for _, s in ipairs(FLY_STATES) do
+		if fly.saved[s] == nil then fly.saved[s] = hum:GetStateEnabled(s) end -- nhớ trạng thái gốc của game
+		hum:SetStateEnabled(s, false)
+	end
+	local animate = char:FindFirstChild("Animate")
+	if animate then animate.Disabled = true end
+	flyTracks(hum, 0)
+	fly.bg = Instance.new("BodyGyro")
+	fly.bg.Name, fly.bg.P = "VuDongFlyGyro", 9e4
+	fly.bg.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+	fly.bg.CFrame = root.CFrame
+	fly.bg.Parent = root
+	fly.bv = Instance.new("BodyVelocity")
+	fly.bv.Name = "VuDongFlyVel"
+	fly.bv.Velocity = Vector3.zero
+	fly.bv.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+	fly.bv.Parent = root
+	hum.PlatformStand = true
+	hum:ChangeState(Enum.HumanoidStateType.Swimming)
+end
+
+local function stopFly(hum)
+	flyClean()
+	fly.up, fly.down = false, false
+	if hum and hum.Parent then
+		for s, was in pairs(fly.saved) do hum:SetStateEnabled(s, was) end
+		hum.PlatformStand = false
+		local animate = hum.Parent:FindFirstChild("Animate")
+		if animate then animate.Disabled = false end
+		flyTracks(hum, 1)
+		hum:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+	end
+	table.clear(fly.saved)
+end
+
+-- một vòng Heartbeat duy nhất: đi theo MoveDirection, giữ hướng camera, UP / DOWN
+local function flyLoop(run)
+	if fly.conn then fly.conn:Disconnect() fly.conn = nil end
+	if not run then return end
+	fly.conn = RunService.Heartbeat:Connect(function(dt)
+		local char = player.Character
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if not (fly.on and hum and root and hum.Health > 0) then return end
+		local k = math.min(dt * 60, 4) -- chuẩn hóa theo 60 FPS (bản gốc dịch cố định mỗi khung hình)
+		local move = hum.MoveDirection
+		if move.Magnitude > 0 then
+			char:TranslateBy(move * fly.speed * k)
+		end
+		local vert = (fly.up and 1 or 0) - (fly.down and 1 or 0)
+		if vert ~= 0 then
+			root.CFrame = root.CFrame + Vector3.new(0, vert * k, 0)
+		end
+		local cam = workspace.CurrentCamera
+		if fly.bg and cam then fly.bg.CFrame = cam.CFrame end
+	end)
+end
+
+FlyAPI = {
+	MIN = FLY_MIN, MAX = FLY_MAX, DEFAULT = FLY_DEFAULT,
+	setSpeed = function(v) fly.speed = math.clamp(math.floor(v + 0.5), FLY_MIN, FLY_MAX) end, -- thanh trượt gọi
+	hold = function(dir, on) -- nút nổi ▲ (dir = 1) / ▼ (dir = -1): giữ để lên / xuống
+		if dir > 0 then fly.up = on else fly.down = on end
+	end,
+	onChange = nil, -- phần giao diện gắn vào để hiện / ẩn nút nổi
+}
+
+-- chết / hồi sinh: tự áp dụng lại cho nhân vật mới
+player.CharacterAdded:Connect(function(char)
+	local hum = char:WaitForChild("Humanoid", 10)
+	if not hum then return end
+	if godOn then startGod(hum) end
+	if speedOn then startSpeed(hum) end
+	if jumpOn then startJump(hum) end
+	if fullOn then startFull(hum) end
+	if invisOn then startInvis(char, hum) end
+	if fly.on then -- đang bật Bay thì bay lại cho nhân vật mới
+		table.clear(fly.saved)
+		flyClean()
+		char:WaitForChild("HumanoidRootPart", 5)
+		char:WaitForChild("Animate", 3)
+		if fly.on and player.Character == char then startFly(char, hum) end
+	end
+end)
+
+
+----------------------------------------------------------------
+-- LOGIC: Tăng FPS 120 (giảm đồ họa nặng + mở khóa giới hạn 120 FPS)
+----------------------------------------------------------------
+local Lighting = game:GetService("Lighting")
+local FPS_TARGET = 120
+local fpsOn = false
+local fpsSaved = { effects = setmetatable({}, { __mode = "k" }), particles = setmetatable({}, { __mode = "k" }) }
+local fpsConn, fpsLightingOrig, fpsQualityOrig = nil, nil, nil
+local FPS_EFFECT_CLASSES = { "BlurEffect", "BloomEffect", "SunRaysEffect", "ColorCorrectionEffect", "DepthOfFieldEffect", "Atmosphere" }
+local FPS_PARTICLE_CLASSES = { "ParticleEmitter", "Trail", "Smoke", "Fire", "Sparkles" }
+
+local function fpsIsClass(obj, list)
+	for _, c in ipairs(list) do
+		if obj:IsA(c) then return true end
+	end
+	return false
+end
+
+local function fpsStrip(obj)
+	if fpsIsClass(obj, FPS_EFFECT_CLASSES) then
+		if fpsSaved.effects[obj] == nil then fpsSaved.effects[obj] = obj.Enabled end
+		pcall(function() obj.Enabled = false end)
+	elseif fpsIsClass(obj, FPS_PARTICLE_CLASSES) then
+		if fpsSaved.particles[obj] == nil then fpsSaved.particles[obj] = obj.Enabled end
+		pcall(function() obj.Enabled = false end)
+	end
+end
+
+local function fpsCap(n)
+	pcall(function()
+		if setfpscap then setfpscap(n) end
+	end)
+end
+
+local function startFps()
+	-- 1) Mở khóa giới hạn FPS (chỉ chạy khi executor hỗ trợ setfpscap)
+	fpsCap(FPS_TARGET)
+	-- 2) Giảm đồ họa: tắt bóng đổ, hiệu ứng hậu kỳ, hạt/khói/lửa
+	fpsLightingOrig = fpsLightingOrig or { shadows = Lighting.GlobalShadows }
+	pcall(function() Lighting.GlobalShadows = false end)
+	pcall(function()
+		fpsQualityOrig = fpsQualityOrig or settings().Rendering.QualityLevel
+		settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+	end)
+	for _, d in ipairs(Lighting:GetDescendants()) do fpsStrip(d) end
+	for _, d in ipairs(workspace:GetDescendants()) do fpsStrip(d) end
+	-- 3) Hiệu ứng mới xuất hiện trong lúc đang bật cũng bị tắt luôn
+	if fpsConn then fpsConn:Disconnect() end
+	fpsConn = workspace.DescendantAdded:Connect(function(d)
+		if fpsOn then fpsStrip(d) end
+	end)
+end
+
+local function stopFps()
+	if fpsConn then fpsConn:Disconnect() fpsConn = nil end
+	fpsCap(60)
+	if fpsLightingOrig then
+		pcall(function() Lighting.GlobalShadows = fpsLightingOrig.shadows end)
+		fpsLightingOrig = nil
+	end
+	if fpsQualityOrig then
+		pcall(function() settings().Rendering.QualityLevel = fpsQualityOrig end)
+		fpsQualityOrig = nil
+	end
+	for obj, was in pairs(fpsSaved.effects) do
+		if obj.Parent then pcall(function() obj.Enabled = was end) end
+	end
+	for obj, was in pairs(fpsSaved.particles) do
+		if obj.Parent then pcall(function() obj.Enabled = was end) end
+	end
+	table.clear(fpsSaved.effects)
+	table.clear(fpsSaved.particles)
+end
+
+
+----------------------------------------------------------------
+-- GẮN LOGIC TẠI ĐÂY (tên = chữ trên nút, on = true/false)
+----------------------------------------------------------------
+Callbacks = {
+	["Jump Power"] = function(on)
+		jumpOn = on
+		local hum = getHumanoid()
+		if on then
+			if hum then startJump(hum) end
+		else
+			stopJump(hum)
+		end
+	end,
+	["Full Health"] = function(on)
+		fullOn = on
+		local hum = getHumanoid()
+		if on then
+			if hum then startFull(hum) end
+		else
+			stopFull()
+		end
+	end,
+	["God Mode"] = function(on)
+		godOn = on
+		local hum = getHumanoid()
+		if on then
+			if hum then startGod(hum) end
+		else
+			stopGod(hum)
+		end
+	end,
+	["Speed Hack"] = function(on)
+		speedOn = on
+		local hum = getHumanoid()
+		if on then
+			if hum then startSpeed(hum) end
+		else
+			stopSpeed(hum)
+		end
+	end,
+	["Tàn Hình"] = function(on)
+		invisOn = on
+		local char = player.Character
+		if on then
+			if char then startInvis(char, getHumanoid()) end
+		else
+			stopInvis(getHumanoid())
+		end
+	end,
+	["Tăng FPS 120"] = function(on)
+		fpsOn = on
+		if on then startFps() else stopFps() end
+	end,
+	["Đi Xuyên Tường"] = function(on)
+		noclipOn = on
+		if on then
+			startNoclip()
+		else
+			stopNoclip()
+		end
+	end,
+	["Bay (Fly)"] = function(on)
+		fly.on = on
+		local char, hum = player.Character, getHumanoid()
+		if on then
+			if char and hum then startFly(char, hum) end
+			flyLoop(true)
+		else
+			flyLoop(false)
+			stopFly(hum)
+		end
+		if FlyAPI.onChange then FlyAPI.onChange(on) end
+	end,
+	["ESP Người Chơi"] = function(on)
+		espHL = on
+		espRefresh()
+	end,
+	["ESP Tên"] = function(on)
+		espName = on
+		espRefresh()
+	end,
+	["ESP Máu"] = function(on)
+		espHP = on
+		espRefresh()
+	end,
+	["ESP Khoảng Cách"] = function(on)
+		espDist = on
+		espRefresh()
+	end,
+	["ESP Rương"] = function(on)
+		chestOn = on
+		chestRefresh()
+	end,
+	-- ["Support"] = function() print("Nút ủng hộ kênh") end,
+}
+end -- hết khối logic
+
+local State = {} -- State["God Mode"] = true/false
+local Groups = {} -- Groups["Player"] = { "God Mode", "Speed Hack", ... }
+
+----------------------------------------------------------------
+-- Màu & font
+----------------------------------------------------------------
+local PANEL = Color3.fromRGB(10, 20, 52)
+local ROW = Color3.fromRGB(14, 28, 68)
+local ROWLINE = Color3.fromRGB(90, 130, 230)
+local OFF = Color3.fromRGB(43, 59, 104)
+local TEXT = Color3.fromRGB(232, 240, 255)
+local MUTED = Color3.fromRGB(142, 163, 207)
+local LINE = Color3.fromRGB(22, 48, 110)
+
+local F_REG, F_MED, F_BOLD = Enum.Font.SourceSans, Enum.Font.SourceSansSemibold, Enum.Font.SourceSansBold
+
+-- Cỡ chữ menu chính: TEXT_SCALE = 3 → mọi chữ trong menu chính to gấp 3 lần cỡ gốc.
+-- Roblox giới hạn TextSize tối đa là 100 nên chữ nào có cỡ gốc trên 33 sẽ dừng ở 100.
+local TEXT_SCALE = 3
+local function ts(n)
+	return math.min(100, math.floor(n * TEXT_SCALE + 0.5))
+end
+local SMALL = ts(22) -- cỡ phần chú thích trong tiêu đề, vd "(Cày)"
+
+local THEME_NAMES = { "Xanh Dương", "Tím", "Xanh Lá", "Hồng" }
+local THEMES = {
+	["Xanh Dương"] = { Color3.fromRGB(47, 123, 255), Color3.fromRGB(56, 212, 255) },
+	["Tím"] = { Color3.fromRGB(139, 92, 246), Color3.fromRGB(196, 181, 253) },
+	["Xanh Lá"] = { Color3.fromRGB(34, 197, 94), Color3.fromRGB(134, 239, 172) },
+	["Hồng"] = { Color3.fromRGB(236, 72, 153), Color3.fromRGB(249, 168, 212) },
+}
+local theme = { accent = THEMES["Xanh Dương"][1], accent2 = THEMES["Xanh Dương"][2] }
+local themeFns = {}
+
+local function themed(fn)
+	fn()
+	table.insert(themeFns, fn)
+end
+
+local function applyTheme(name)
+	local t = THEMES[name]
+	theme.accent, theme.accent2 = t[1], t[2]
+	for _, fn in ipairs(themeFns) do
+		fn()
+	end
+end
+
+----------------------------------------------------------------
+-- Hàm tiện ích
+----------------------------------------------------------------
+local function new(class, props, parent)
+	local o = Instance.new(class)
+	for k, v in pairs(props) do
+		o[k] = v
+	end
+	o.Parent = parent
+	return o
+end
+
+local function corner(o, r)
+	return new("UICorner", { CornerRadius = UDim.new(0, r) }, o)
+end
+
+local function stroke(o, color, th, trans)
+	return new("UIStroke", { Color = color, Thickness = th or 1, Transparency = trans or 0 }, o)
+end
+
+local function pad(o, t, r, b, l)
+	return new("UIPadding", {
+		PaddingTop = UDim.new(0, t), PaddingRight = UDim.new(0, r),
+		PaddingBottom = UDim.new(0, b), PaddingLeft = UDim.new(0, l),
+	}, o)
+end
+
+local function list(o, gap, order)
+	return new("UIListLayout", { Padding = UDim.new(0, gap), SortOrder = order or Enum.SortOrder.LayoutOrder }, o)
+end
+
+local function label(parent, props, keepSize)
+	local p = {
+		BackgroundTransparency = 1, Font = F_MED, TextColor3 = TEXT, TextSize = 16,
+		TextXAlignment = Enum.TextXAlignment.Left,
+	}
+	for k, v in pairs(props) do
+		p[k] = v
+	end
+	if not keepSize then
+		p.TextSize = ts(p.TextSize) -- nhân cỡ chữ (keepSize = true thì giữ nguyên)
+	end
+	return new("TextLabel", p, parent)
+end
+
+----------------------------------------------------------------
+-- Cửa sổ chính
+----------------------------------------------------------------
+local W, H = 2600, 1640 -- chiều rộng, chiều cao menu chính (đã nới ra cho chữ gấp 3; menu tự thu nhỏ vừa màn hình)
+local SIDE_W = 680 -- độ rộng thanh bên
+local HEAD, FOOT = 200, 90 -- chiều cao phần đầu / chân menu
+local MARG = 24 -- lề giữa các khối
+local BODY_TOP, BOT = HEAD + 20, FOOT + 20
+
+local gui = new("ScreenGui", {
+	Name = "VuDongScriptUI", ResetOnSpawn = false, IgnoreGuiInset = true,
+	ZIndexBehavior = Enum.ZIndexBehavior.Sibling, DisplayOrder = 100,
+}, player:WaitForChild("PlayerGui"))
+
+local main = new("Frame", {
+	Name = "Main", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromOffset(W, H), BackgroundColor3 = Color3.new(1, 1, 1),
+}, gui)
+corner(main, 44)
+new("UIGradient", {
+	Rotation = 90,
+	Color = ColorSequence.new(Color3.fromRGB(11, 22, 54), Color3.fromRGB(6, 13, 36)),
+}, main)
+
+-- 7 sắc cầu vồng: đỏ, cam, vàng, lục, lam, chàm, tím (lặp lại đỏ ở cuối để vòng xoay liền mạch)
+local RAINBOW = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 60, 60)),
+	ColorSequenceKeypoint.new(1 / 7, Color3.fromRGB(255, 150, 40)),
+	ColorSequenceKeypoint.new(2 / 7, Color3.fromRGB(255, 230, 60)),
+	ColorSequenceKeypoint.new(3 / 7, Color3.fromRGB(60, 230, 90)),
+	ColorSequenceKeypoint.new(4 / 7, Color3.fromRGB(50, 170, 255)),
+	ColorSequenceKeypoint.new(5 / 7, Color3.fromRGB(90, 90, 255)),
+	ColorSequenceKeypoint.new(6 / 7, Color3.fromRGB(190, 90, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 60, 60)),
+})
+
+-- viền menu chính: 7 màu cầu vồng xoay vòng + nhấp nháy
+-- (stroke để màu trắng để gradient hiện đúng màu cầu vồng)
+local mainStroke = new("UIStroke", {
+	Color = Color3.new(1, 1, 1), Thickness = 5, Transparency = 0.55,
+	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+}, main)
+local mainGradient = new("UIGradient", { Color = RAINBOW }, mainStroke)
+TweenService:Create(mainGradient, TweenInfo.new(4, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), { Rotation = 360 }):Play()
+TweenService:Create(mainStroke, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Transparency = 0 }):Play()
+
+-- tự thu nhỏ cho vừa màn hình điện thoại
+local uiScale = new("UIScale", {}, main)
+local function rescale()
+	local v = camera.ViewportSize
+	uiScale.Scale = math.clamp(math.min((v.X - 16) / W, (v.Y - 16) / H), 0.1, 1)
+end
+rescale()
+camera:GetPropertyChangedSignal("ViewportSize"):Connect(rescale)
+
+-- Tab vuông Ẩn / Hiện menu chính (luôn hiển thị, kéo thả được)
+local TAB = 56
+local TAB_BG = Color3.fromRGB(11, 22, 54)
+local toggleTab = new("TextButton", {
+	Name = "ToggleTab", Text = "", AutoButtonColor = false, ZIndex = 50,
+	Position = UDim2.new(0, 12, 0.5, -TAB / 2), Size = UDim2.fromOffset(TAB, TAB),
+	BackgroundColor3 = TAB_BG,
+}, gui)
+corner(toggleTab, 12)
+
+-- viền mỏng 7 màu (stroke để màu trắng để gradient hiện đúng màu cầu vồng)
+local tabStroke = new("UIStroke", {
+	Color = Color3.new(1, 1, 1), Thickness = 1.5, Transparency = 0.3,
+	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+}, toggleTab)
+local tabGradient = new("UIGradient", { Color = RAINBOW }, tabStroke)
+
+-- quầng sáng cầu vồng bên ngoài viền, nhấp sáng theo nhịp
+local halo = new("Frame", {
+	Name = "Halo", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.new(1, 4, 1, 4), BackgroundTransparency = 1, ZIndex = 49,
+}, toggleTab)
+corner(halo, 14)
+local haloStroke = new("UIStroke", {
+	Color = Color3.new(1, 1, 1), Thickness = 2, Transparency = 0.85,
+	ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+}, halo)
+local haloGradient = new("UIGradient", { Color = RAINBOW }, haloStroke)
+
+-- hiệu ứng: màu cầu vồng xoay vòng liên tục + viền / quầng sáng nhấp nháy
+local SPIN = TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1)
+local PULSE = TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+TweenService:Create(tabGradient, SPIN, { Rotation = 360 }):Play()
+TweenService:Create(haloGradient, SPIN, { Rotation = 360 }):Play()
+TweenService:Create(tabStroke, PULSE, { Transparency = 0 }):Play()
+TweenService:Create(haloStroke, PULSE, { Transparency = 0.35, Thickness = 5 }):Play()
+
+label(toggleTab, { Text = "👑", TextSize = 26, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center,
+	ZIndex = 51, Position = UDim2.fromOffset(0, 4), Size = UDim2.new(1, 0, 0, 30) }, true) -- true = giữ nguyên cỡ chữ (tab nhỏ không nhân)
+local tabText = label(toggleTab, { Text = "ẨN", TextSize = 13, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center,
+	ZIndex = 51, Position = UDim2.fromOffset(0, 36), Size = UDim2.new(1, 0, 0, 14) }, true)
+
+local function paintTab()
+	local isOpen = main.Visible
+	tabText.Text = isOpen and "ẨN" or "HIỆN"
+	tabText.TextColor3 = theme.accent2
+	toggleTab.BackgroundColor3 = isOpen and theme.accent:Lerp(TAB_BG, 0.7) or TAB_BG
+end
+themed(paintTab)
+
+local function setOpen(v)
+	main.Visible = v
+	paintTab()
+end
+
+-- giữ tab trong màn hình
+local function clampTab(p)
+	local v = gui.AbsoluteSize
+	toggleTab.Position = UDim2.fromOffset(
+		math.clamp(p.X, 0, math.max(0, v.X - TAB)),
+		math.clamp(p.Y, 0, math.max(0, v.Y - TAB))
+	)
+end
+gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+	clampTab(toggleTab.AbsolutePosition)
+end)
+
+-- kéo thả tab (di chuyển > 6px thì tính là kéo, không tính là bấm)
+local tabDrag, tabMoved, tabInputStart, tabPosStart = false, false, nil, nil
+toggleTab.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		tabDrag, tabMoved = true, false
+		tabInputStart, tabPosStart = input.Position, toggleTab.AbsolutePosition
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then tabDrag = false end
+		end)
+	end
+end)
+UserInputService.InputChanged:Connect(function(input)
+	if tabDrag and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local d = input.Position - tabInputStart
+		if d.Magnitude > 6 then tabMoved = true end
+		if tabMoved then
+			clampTab(tabPosStart + Vector2.new(d.X, d.Y))
+		end
+	end
+end)
+toggleTab.Activated:Connect(function()
+	if tabMoved then
+		tabMoved = false
+		return
+	end
+	setOpen(not main.Visible)
+end)
+UserInputService.InputBegan:Connect(function(input, processed)
+	if not processed and input.KeyCode == Enum.KeyCode.RightShift then
+		setOpen(not main.Visible)
+	end
+end)
+
+----------------------------------------------------------------
+-- Header
+----------------------------------------------------------------
+local header = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, HEAD) }, main)
+new("Frame", { BackgroundColor3 = LINE, BorderSizePixel = 0, Position = UDim2.fromOffset(0, HEAD), Size = UDim2.new(1, 0, 0, 3) }, main)
+
+label(header, { Text = "👑", TextSize = 52, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center,
+	Position = UDim2.fromOffset(30, 40), Size = UDim2.fromOffset(130, 120) })
+
+local title = label(header, { RichText = true, TextSize = 42, Font = F_BOLD,
+	Position = UDim2.fromOffset(176, 12), Size = UDim2.fromOffset(960, 112) })
+local subtitle = label(header, { Text = "Chơi Game Thật Dễ - Đỉnh Cao Trải Nghiệm", TextSize = 21,
+	Position = UDim2.fromOffset(176, 122), Size = UDim2.fromOffset(1300, 70) })
+themed(function()
+	title.Text = 'Vu Dong <font color="#' .. theme.accent2:ToHex() .. '">Script</font>'
+	subtitle.TextColor3 = theme.accent2
+end)
+
+local badge = new("Frame", {
+	BackgroundColor3 = Color3.fromRGB(47, 123, 255), BackgroundTransparency = 0.85,
+	Position = UDim2.new(1, -1030, 0, 25), Size = UDim2.fromOffset(700, 150),
+}, header)
+corner(badge, 75)
+local badgeStroke = stroke(badge, theme.accent, 3, 0)
+themed(function() badgeStroke.Color = theme.accent end)
+label(badge, { Text = "🚀", TextSize = 30, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center,
+	Position = UDim2.fromOffset(20, 0), Size = UDim2.fromOffset(110, 150) })
+label(badge, { Text = "Phiên Bản Mới Nhất", TextSize = 19, Font = F_BOLD,
+	Position = UDim2.fromOffset(140, 12), Size = UDim2.fromOffset(550, 66) })
+label(badge, { Text = "No Key - Free", TextSize = 18, TextColor3 = MUTED,
+	Position = UDim2.fromOffset(140, 80), Size = UDim2.fromOffset(550, 62) })
+
+local function headerBtn(text, x)
+	local b = new("TextButton", {
+		Text = text, TextSize = ts(36), Font = F_BOLD, BackgroundTransparency = 1,
+		Position = UDim2.new(1, -x, 0, 45), Size = UDim2.fromOffset(110, 110),
+	}, header)
+	themed(function() b.TextColor3 = theme.accent2 end)
+	b.Activated:Connect(function() setOpen(false) end)
+end
+headerBtn("–", 300)
+headerBtn("✕", 160)
+
+-- kéo thả cửa sổ
+local dragging, dragStart, startPos
+header.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging, dragStart, startPos = true, input.Position, main.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then dragging = false end
+		end)
+	end
+end)
+UserInputService.InputChanged:Connect(function(input)
+	if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local d = (input.Position - dragStart) / uiScale.Scale
+		main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + d.X, startPos.Y.Scale, startPos.Y.Offset + d.Y)
+	end
+end)
+
+----------------------------------------------------------------
+-- Footer + thanh trạng thái
+----------------------------------------------------------------
+local footer = new("Frame", {
+	BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 1),
+	Position = UDim2.fromScale(0, 1), Size = UDim2.new(1, 0, 0, FOOT),
+}, main)
+new("Frame", { BackgroundColor3 = LINE, BorderSizePixel = 0, Size = UDim2.new(1, 0, 0, 3) }, footer)
+local dot = new("Frame", { BackgroundColor3 = Color3.fromRGB(34, 197, 94), Position = UDim2.fromOffset(40, 30), Size = UDim2.fromOffset(30, 30) }, footer)
+corner(dot, 15)
+local statusLabel = label(footer, { RichText = true, TextSize = 21, TextColor3 = MUTED,
+	Position = UDim2.fromOffset(92, 0), Size = UDim2.fromOffset(1540, FOOT) })
+local tagline = label(footer, { Text = "Chơi thông minh - Thắng dễ dàng!", TextSize = 21, Font = Enum.Font.SourceSansItalic,
+	TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0),
+	Position = UDim2.new(1, -40, 0, 0), Size = UDim2.fromOffset(920, FOOT) })
+
+local statusText, statusToken = "Đã sẵn sàng", 0
+local function renderStatus()
+	statusLabel.Text = 'Trạng thái: <font color="#' .. theme.accent2:ToHex() .. '">' .. statusText .. "</font>"
+	tagline.TextColor3 = theme.accent2
+end
+themed(renderStatus)
+
+local function setStatus(text)
+	statusToken += 1
+	local my = statusToken
+	statusText = text
+	renderStatus()
+	task.delay(1.8, function()
+		if statusToken == my then
+			statusText = "Đã sẵn sàng"
+			renderStatus()
+		end
+	end)
+end
+
+----------------------------------------------------------------
+-- Thành phần: card, hàng, công tắc, dropdown
+----------------------------------------------------------------
+-- Khung viền 7 màu cầu vồng: màu xoay vòng liên tục + viền nhấp nháy
+-- (stroke để màu trắng để gradient hiện đúng màu cầu vồng)
+local function rainbowStroke(o, thickness)
+	local st = new("UIStroke", {
+		Color = Color3.new(1, 1, 1), Thickness = thickness or 3, Transparency = 0.35,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+	}, o)
+	local g = new("UIGradient", { Color = RAINBOW }, st)
+	TweenService:Create(g, TweenInfo.new(4, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), { Rotation = 360 }):Play()
+	TweenService:Create(st, TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Transparency = 0 }):Play()
+	return st
+end
+
+-- đổi viền thẻ chức năng (card) sang khung 7 màu
+local function rainbowCard(c)
+	local old = c:FindFirstChildOfClass("UIStroke")
+	if old then old:Destroy() end
+	return rainbowStroke(c, 3)
+end
+
+local function card(parent, order, icon, titleRich, subtitleText, color, titleColor)
+	local c = new("Frame", {
+		BackgroundColor3 = PANEL, BackgroundTransparency = 0.1, LayoutOrder = order,
+		Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
+	}, parent)
+	corner(c, 32)
+	stroke(c, color, 3, 0.1)
+	pad(c, 30, 30, 30, 30)
+	list(c, 20)
+	local h = new("Frame", { BackgroundTransparency = 1, Size = UDim2.new(1, 0, 0, 180), LayoutOrder = 0 }, c)
+	label(h, { Text = icon, TextSize = 40, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center, Size = UDim2.fromOffset(130, 180) })
+	label(h, { RichText = true, Text = titleRich, TextSize = 32, Font = F_BOLD, TextColor3 = titleColor or color,
+		Position = UDim2.fromOffset(150, 4), Size = UDim2.new(1, -150, 0, 108) })
+	label(h, { Text = subtitleText, TextSize = 19, TextColor3 = MUTED, TextTruncate = Enum.TextTruncate.AtEnd,
+		Position = UDim2.fromOffset(150, 112), Size = UDim2.new(1, -150, 0, 66) })
+	return c
+end
+
+local ROW_H = 130 -- chiều cao mỗi hàng chức năng
+
+local function row(parent, order, icon, text, rightWidth, textSize)
+	local r = new("Frame", { BackgroundColor3 = ROW, BackgroundTransparency = 0.1, LayoutOrder = order, Size = UDim2.new(1, 0, 0, ROW_H) }, parent)
+	corner(r, 26)
+	stroke(r, ROWLINE, 2, 0.6)
+	label(r, { Text = icon, TextSize = 34, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center,
+		Position = UDim2.fromOffset(14, 0), Size = UDim2.fromOffset(120, ROW_H) })
+	label(r, { Text = text, TextSize = textSize or 28, TextTruncate = Enum.TextTruncate.AtEnd,
+		Position = UDim2.fromOffset(150, 0), Size = UDim2.new(1, -(150 + rightWidth), 1, 0) })
+	return r
+end
+
+local function toggle(parent, order, icon, text, default, group, display, textSize)
+	local r = row(parent, order, icon, display or text, 240, textSize)
+	State[text] = default
+	if group then
+		Groups[group] = Groups[group] or {}
+		table.insert(Groups[group], text)
+	end
+	local sw = new("TextButton", {
+		Text = "", AutoButtonColor = false, AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -32, 0.5, 0), Size = UDim2.fromOffset(180, 96), BackgroundColor3 = OFF,
+	}, r)
+	corner(sw, 48)
+	local knob = new("Frame", { AnchorPoint = Vector2.new(0, 0.5), Size = UDim2.fromOffset(76, 76), BackgroundColor3 = Color3.new(1, 1, 1) }, sw)
+	corner(knob, 38)
+
+	local function paint(animate)
+		local on = State[text]
+		local info = TweenInfo.new(animate and 0.18 or 0)
+		TweenService:Create(sw, info, { BackgroundColor3 = on and theme.accent or OFF }):Play()
+		TweenService:Create(knob, info, {
+			Position = on and UDim2.new(1, -86, 0.5, 0) or UDim2.new(0, 10, 0.5, 0),
+			BackgroundColor3 = on and Color3.new(1, 1, 1) or Color3.fromRGB(174, 185, 221),
+		}):Play()
+	end
+	themed(function() paint(false) end)
+
+	-- bật / tắt công tắc này từ code: State.__set[tên](true / false) (vd. để hai công tắc loại trừ nhau)
+	State.__set = State.__set or {}
+	State.__set[text] = function(on)
+		if State[text] == on then return end
+		State[text] = on
+		paint(true)
+		setStatus((on and "Đã bật: " or "Đã tắt: ") .. text)
+		local cb = Callbacks[text]
+		if cb then task.spawn(cb, on) end
+	end
+
+	sw.Activated:Connect(function()
+		State[text] = not State[text]
+		paint(true)
+		setStatus((State[text] and "Đã bật: " or "Đã tắt: ") .. text)
+		local cb = Callbacks[text]
+		if cb then task.spawn(cb, State[text]) end
+	end)
+end
+
+local function dropdown(parent, order, icon, text, options, default, onChange)
+	local r = row(parent, order, icon, text, 600)
+	local btn = new("TextButton", {
+		Text = default .. "  ▾", TextSize = ts(24), Font = F_MED, TextColor3 = TEXT, AutoButtonColor = false,
+		BackgroundColor3 = Color3.fromRGB(12, 24, 56), AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -24, 0.5, 0), Size = UDim2.fromOffset(520, 104),
+	}, r)
+	corner(btn, 22)
+	stroke(btn, ROWLINE, 2, 0.5)
+
+	local menu = new("Frame", {
+		Visible = false, ZIndex = 20, AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 0, 0, -8),
+		Size = UDim2.fromOffset(520, #options * 104 + 16), BackgroundColor3 = Color3.fromRGB(12, 24, 56),
+	}, btn)
+	corner(menu, 22)
+	local ms = stroke(menu, theme.accent, 2, 0)
+	themed(function() ms.Color = theme.accent end)
+	pad(menu, 8, 8, 8, 8)
+	list(menu, 0)
+	for i, o in ipairs(options) do
+		local ob = new("TextButton", {
+			Text = o, TextSize = ts(24), Font = F_MED, TextColor3 = TEXT, BackgroundTransparency = 1,
+			ZIndex = 21, LayoutOrder = i, Size = UDim2.new(1, 0, 0, 104),
+		}, menu)
+		ob.Activated:Connect(function()
+			btn.Text = o .. "  ▾"
+			menu.Visible = false
+			onChange(o)
+		end)
+	end
+	btn.Activated:Connect(function() menu.Visible = not menu.Visible end)
+end
+
+local function slider(parent, order, icon, text, minV, maxV, default, onChange)
+	local SH = 260 -- chiều cao hàng: nửa trên = tên + số, nửa dưới = thanh trượt
+	local r = new("Frame", { BackgroundColor3 = ROW, BackgroundTransparency = 0.1, LayoutOrder = order, Size = UDim2.new(1, 0, 0, SH) }, parent)
+	corner(r, 26)
+	stroke(r, ROWLINE, 2, 0.6)
+	label(r, { Text = icon, TextSize = 34, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center,
+		Position = UDim2.fromOffset(14, 0), Size = UDim2.fromOffset(120, 130) })
+	label(r, { Text = text, TextSize = 28, TextTruncate = Enum.TextTruncate.AtEnd,
+		Position = UDim2.fromOffset(150, 0), Size = UDim2.new(1, -(150 + 360), 0, 130) })
+	local valueLabel = label(r, { Text = tostring(default), TextSize = 30, Font = F_BOLD,
+		TextXAlignment = Enum.TextXAlignment.Right, AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.new(1, -32, 0, 0), Size = UDim2.fromOffset(320, 130) })
+	themed(function() valueLabel.TextColor3 = theme.accent2 end)
+
+	local BTN, CY = 110, 195 -- cỡ nút -/+ và tâm dọc của thanh trượt
+	local function stepBtn(txt, anchorX, x)
+		local b = new("TextButton", {
+			Text = txt, TextSize = ts(30), Font = F_BOLD, TextColor3 = TEXT, AutoButtonColor = false,
+			BackgroundColor3 = OFF, BorderSizePixel = 0, AnchorPoint = Vector2.new(anchorX, 0.5),
+			Position = UDim2.new(anchorX, x, 0, CY), Size = UDim2.fromOffset(BTN, BTN),
+		}, r)
+		corner(b, 28)
+		return b
+	end
+	local minus = stepBtn("−", 0, 150)
+	local plus = stepBtn("+", 1, -32)
+
+	-- vùng chạm (cao hơn thanh để dễ kéo bằng ngón tay)
+	local hit = new("TextButton", {
+		Text = "", AutoButtonColor = false, BackgroundTransparency = 1, BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.new(0, 150 + BTN + 50, 0, CY), Size = UDim2.new(1, -(150 + BTN + 50 + 32 + BTN + 50), 0, 130),
+	}, r)
+	local track = new("Frame", {
+		BackgroundColor3 = OFF, BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.fromScale(0, 0.5), Size = UDim2.new(1, 0, 0, 28),
+	}, hit)
+	corner(track, 14)
+	local fill = new("Frame", { BorderSizePixel = 0, Size = UDim2.fromScale(0, 1) }, track)
+	corner(fill, 14)
+	local knob = new("Frame", {
+		AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(72, 72),
+		BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0, ZIndex = 2,
+	}, track)
+	corner(knob, 36)
+	themed(function() fill.BackgroundColor3 = theme.accent end)
+
+	local value = math.clamp(default, minV, maxV)
+	local function render()
+		local a = (value - minV) / (maxV - minV)
+		fill.Size = UDim2.fromScale(a, 1)
+		knob.Position = UDim2.fromScale(a, 0.5)
+		valueLabel.Text = tostring(value)
+	end
+	local function set(v)
+		value = math.clamp(math.floor(v + 0.5), minV, maxV)
+		render()
+		onChange(value)
+	end
+	render()
+
+	minus.Activated:Connect(function() set(value - 1) end)
+	plus.Activated:Connect(function() set(value + 1) end)
+
+	local function setFromX(x)
+		local a = math.clamp((x - track.AbsolutePosition.X) / math.max(track.AbsoluteSize.X, 1), 0, 1)
+		set(minV + a * (maxV - minV))
+	end
+	local sliding = false
+	local scroller = parent:FindFirstAncestorOfClass("ScrollingFrame")
+	hit.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			sliding = true
+			if scroller then scroller.ScrollingEnabled = false end -- đang kéo thì không cuộn trang
+			setFromX(input.Position.X)
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					sliding = false
+					if scroller then scroller.ScrollingEnabled = true end
+				end
+			end)
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if sliding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			setFromX(input.Position.X)
+		end
+	end)
+end
+
+----------------------------------------------------------------
+-- Các trang: MỖI TAB LÀ MỘT TRANG RIÊNG BIỆT
+----------------------------------------------------------------
+local TABS = {
+	{ "🏠", "Thông Tin" }, { "👤", "Player" }, { "👁️", "ESP" }, { "🌲", "Forest" }, { "🎚️", "Cài Đặt" },
+}
+
+local pages, navByName = {}, {}
+
+local function newPage(name)
+	local p = new("ScrollingFrame", {
+		Name = name, Visible = false, BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 16,
+		CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Position = UDim2.fromOffset(SIDE_W + MARG * 2, BODY_TOP), Size = UDim2.new(1, -(SIDE_W + MARG * 3), 1, -(BODY_TOP + BOT)),
+	}, main)
+	pad(p, 4, 30, 4, 4)
+	list(p, 28)
+	pages[name] = p
+	return p
+end
+
+local function showTab(name)
+	local page = pages[name]
+	local wasVisible = page.Visible
+	for n, p in pairs(pages) do
+		if n ~= name and p.Visible then
+			p:SetAttribute("SavedScrollY", p.CanvasPosition.Y) -- nhớ vị trí đã vuốt của tab sắp rời đi
+		end
+		p.Visible = (n == name)
+	end
+	if not wasVisible then
+		-- quay lại tab cũ: trả về đúng vị trí đã vuốt (lần đầu vào tab thì ở đầu trang)
+		local y = page:GetAttribute("SavedScrollY") or 0
+		page.CanvasPosition = Vector2.new(0, y)
+		-- trang vừa hiện có thể chưa tính xong độ dài nội dung nên bị kẹp về 0: đặt lại vài khung hình đầu
+		task.spawn(function()
+			for _ = 1, 3 do
+				task.wait()
+				if not page.Visible or math.abs(page.CanvasPosition.Y - y) < 1 then return end
+				page.CanvasPosition = Vector2.new(0, y)
+			end
+		end)
+	end
+	for n, b in pairs(navByName) do
+		b.BackgroundTransparency = (n == name) and 0 or 1
+	end
+end
+
+-- Tab: Player
+local playerCard = card(newPage("Player"), 1, "👤", 'Player <font size="' .. SMALL .. '">(Nhân Vật)</font>', "Tối ưu sức mạnh nhân vật", Color3.fromRGB(34, 211, 160))
+rainbowCard(playerCard)
+toggle(playerCard, 1, "🛡️", "God Mode", false, "Player")
+toggle(playerCard, 2, "🏃", "Speed Hack", true, "Player")
+task.spawn(Callbacks["Speed Hack"], true) -- mặc định BẬT: áp dụng tốc độ ngay khi menu chạy (hồi sinh cũng tự áp dụng lại)
+slider(playerCard, 3, "⚡", "Tốc Độ Chạy", SPEED_MIN, SPEED_MAX, SPEED_DEFAULT, function(v)
+	setSpeedValue(v)
+	setStatus("Tốc độ chạy: " .. v)
+end)
+toggle(playerCard, 4, "⬆️", "Jump Power", false, "Player")
+slider(playerCard, 5, "🦘", "Sức Nhảy", JUMP_MIN, JUMP_MAX, JUMP_DEFAULT, function(v)
+	setJumpValue(v)
+	setStatus("Sức nhảy: " .. v)
+end)
+toggle(playerCard, 6, "💚", "Full Health", false, "Player")
+toggle(playerCard, 7, "👻", "Tàn Hình", false, "Player")
+toggle(playerCard, 8, "🧱", "Đi Xuyên Tường", false, "Player")
+toggle(playerCard, 9, "🕊️", "Bay (Fly)", false, "Player")
+slider(playerCard, 10, "🚀", "Tốc Độ Bay", FlyAPI.MIN, FlyAPI.MAX, FlyAPI.DEFAULT, function(v)
+	FlyAPI.setSpeed(v)
+	setStatus("Tốc độ bay: " .. v)
+end)
+
+-- Nút nổi ▲ / ▼ của chế độ Bay (giữ để bay lên / xuống) - chỉ hiện khi bật Bay, vẫn dùng được khi menu đang ẩn.
+-- Đặt trong khối do ... end để không thêm biến local ở cấp ngoài cùng.
+do
+	local flyBox = new("Frame", {
+		Name = "VuDongFlyButtons", BackgroundTransparency = 1, Visible = false, ZIndex = 50,
+		AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -24, 0.5, 0),
+		Size = UDim2.fromOffset(110, 240),
+	}, gui)
+	list(flyBox, 20)
+	local function flyBtn(text, order, dir)
+		local b = new("TextButton", {
+			Text = text, TextSize = 44, Font = F_BOLD, TextColor3 = Color3.new(1, 1, 1), AutoButtonColor = false,
+			BackgroundColor3 = theme.accent, BackgroundTransparency = 0.15, LayoutOrder = order,
+			Size = UDim2.fromOffset(110, 110), ZIndex = 51,
+		}, flyBox)
+		corner(b, 26)
+		stroke(b, Color3.new(1, 1, 1), 2, 0.5)
+		themed(function() b.BackgroundColor3 = theme.accent end)
+		local held
+		b.InputBegan:Connect(function(input)
+			local t = input.UserInputType
+			if t == Enum.UserInputType.MouseButton1 or t == Enum.UserInputType.Touch then
+				held = input
+				FlyAPI.hold(dir, true)
+			end
+		end)
+		UserInputService.InputEnded:Connect(function(input)
+			if held and (input == held or (held.UserInputType == Enum.UserInputType.MouseButton1
+				and input.UserInputType == Enum.UserInputType.MouseButton1)) then
+				held = nil
+				FlyAPI.hold(dir, false)
+			end
+		end)
+	end
+	flyBtn("▲", 1, 1)
+	flyBtn("▼", 2, -1)
+	FlyAPI.onChange = function(on)
+		flyBox.Visible = on
+	end
+end
+
+-- Tab: ESP
+local espCard = card(newPage("ESP"), 1, "👁️", 'ESP <font size="' .. SMALL .. '">(Nhìn Xuyên)</font>', "Thấy người chơi & rương xuyên tường", Color3.fromRGB(248, 113, 113))
+rainbowCard(espCard)
+toggle(espCard, 1, "🎯", "ESP Người Chơi", false, "ESP")
+toggle(espCard, 2, "🏷️", "ESP Tên", false, "ESP")
+toggle(espCard, 3, "❤️", "ESP Máu", false, "ESP")
+toggle(espCard, 4, "📏", "ESP Khoảng Cách", false, "ESP")
+toggle(espCard, 5, "📦", "ESP Rương", false, "ESP")
+dropdown(espCard, 6, "🎨", "Màu ESP", ESP_COLOR_NAMES, "Đỏ", function(name)
+	espColor = ESP_COLORS[name]
+	setStatus("Màu ESP: " .. name)
+end)
+
+-- Tab: Cài Đặt
+local setCard = card(newPage("Cài Đặt"), 1, "🎚️", "Cài Đặt", "Tùy chỉnh giao diện & chức năng", Color3.fromRGB(234, 179, 8))
+rainbowCard(setCard)
+toggle(setCard, 1, "✨", "Hiệu Ứng Đẹp", true, "Cài Đặt")
+toggle(setCard, 2, "🔊", "Âm Thanh", true, "Cài Đặt")
+toggle(setCard, 3, "🔔", "Hiển Thị Thông Báo", true, "Cài Đặt")
+toggle(setCard, 4, "⚡", "Tăng FPS 120", false, "Cài Đặt")
+dropdown(setCard, 5, "🎨", "Giao Diện Màu", THEME_NAMES, "Xanh Dương", function(name)
+	applyTheme(name)
+	setStatus("Đổi giao diện: " .. name)
+end)
+
+-- Thẻ Chuẩn Đoán (trang Cài Đặt): công cụ giúp viết & gỡ lỗi script
+local Stats = game:GetService("Stats")
+local LogService = game:GetService("LogService")
+local diagMouse = player:GetMouse()
+
+local diagCard = card(setCard.Parent, 2, "🩺", "Chuẩn Đoán", "Công cụ hỗ trợ viết & gỡ lỗi script", Color3.fromRGB(34, 211, 238))
+rainbowCard(diagCard)
+
+local diagOn, logOn = false, false
+local diagConn, logConn = nil, nil
+local diagFps, diagAcc, diagFrames = 0, 0, 0
+local LOG_MAX, LOG_SHOW = 80, 14 -- giữ tối đa 80 dòng log, hiện 14 dòng cuối
+local logLines = {}
+local execRows = nil -- danh sách hàm executor (tính một lần rồi nhớ)
+local lastTarget = nil -- vật 3D vừa bấm / chạm gần nhất (không tính bấm trúng menu)
+
+local function esc(s)
+	return (tostring(s):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+end
+
+-- khung chữ nhiều dòng (tự giãn chiều cao)
+local function textPanel(parent, order)
+	local f = new("Frame", {
+		BackgroundColor3 = Color3.fromRGB(12, 24, 56), LayoutOrder = order,
+		Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
+	}, parent)
+	corner(f, 22)
+	stroke(f, ROWLINE, 2, 0.5)
+	pad(f, 24, 28, 24, 28)
+	return new("TextLabel", {
+		BackgroundTransparency = 1, RichText = true, TextWrapped = true, Font = F_MED, TextColor3 = TEXT,
+		TextSize = ts(17), TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
+		Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, Text = "",
+	}, f)
+end
+
+-- hàng có nút bấm bên phải
+local function actionRow(parent, order, icon, text, btnText, fn)
+	local r = row(parent, order, icon, text, 440)
+	local b = new("TextButton", {
+		Text = btnText, TextSize = ts(22), Font = F_BOLD, TextColor3 = Color3.new(1, 1, 1), AutoButtonColor = false,
+		AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -32, 0.5, 0), Size = UDim2.fromOffset(380, 96),
+	}, r)
+	corner(b, 48)
+	themed(function() b.BackgroundColor3 = theme.accent end)
+	b.Activated:Connect(fn)
+	return b
+end
+
+-- đường dẫn dùng được trong script: workspace["Map"]["Part"] hoặc game:GetService("X")["Y"]
+local function pathOf(inst)
+	local parts, cur = {}, inst
+	while cur and cur ~= game do
+		table.insert(parts, 1, cur)
+		cur = cur.Parent
+	end
+	if cur ~= game then return inst:GetFullName() .. " (không thuộc game)" end
+	if #parts == 0 then return "game" end
+	local s
+	if parts[1] == workspace then
+		s = "workspace"
+	else
+		s = string.format("game:GetService(%q)", parts[1].ClassName)
+	end
+	for i = 2, #parts do
+		s = s .. string.format("[%q]", parts[i].Name)
+	end
+	return s
+end
+
+local EXEC_FUNCS = {
+	"setclipboard", "setfpscap", "getgenv", "loadstring", "request", "hookfunction", "hookmetamethod",
+	"getrawmetatable", "checkcaller", "fireclickdetector", "fireproximityprompt", "firetouchinterest",
+	"firesignal", "getconnections", "getnilinstances", "readfile", "writefile", "Drawing",
+}
+
+local function getExecRows()
+	if execRows then return execRows end
+	local ok, env = pcall(function() return getfenv() end)
+	if not ok or type(env) ~= "table" then env = {} end
+	local name = "không rõ (Studio hoặc không phải executor)"
+	if env.identifyexecutor then
+		local ok2, n = pcall(env.identifyexecutor)
+		if ok2 and n then name = tostring(n) end
+	end
+	local has, miss = {}, {}
+	for _, f in ipairs(EXEC_FUNCS) do
+		if env[f] ~= nil then table.insert(has, f) else table.insert(miss, f) end
+	end
+	execRows = {
+		{ "Executor", name },
+		{ "Có hàm", #has > 0 and table.concat(has, ", ") or "(không có)" },
+		{ "Thiếu hàm", #miss > 0 and table.concat(miss, ", ") or "(không thiếu)" },
+	}
+	return execRows
+end
+
+local function collectDiag()
+	local rows = {}
+	local function add(k, v) table.insert(rows, { k, tostring(v) }) end
+	add("FPS", diagOn and diagFps or "đang tắt")
+	local ping = "?"
+	pcall(function() ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue() + 0.5) .. " ms" end)
+	add("Ping", ping)
+	local mem = "?"
+	pcall(function() mem = string.format("%.0f MB", Stats:GetTotalMemoryUsageMb()) end)
+	add("Bộ nhớ", mem)
+	add("Người chơi", #Players:GetPlayers() .. "/" .. Players.MaxPlayers)
+	add("PlaceId", game.PlaceId)
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if root then
+		add("Vị trí", string.format("%.1f, %.1f, %.1f", root.Position.X, root.Position.Y, root.Position.Z))
+	else
+		add("Vị trí", "chưa có nhân vật")
+	end
+	local hum = getHumanoid()
+	if hum then
+		add("Máu", string.format("%.0f / %.0f", hum.Health, hum.MaxHealth))
+		add("WalkSpeed", hum.WalkSpeed)
+		add("Nhảy", hum.UseJumpPower and ("JumpPower " .. hum.JumpPower) or ("JumpHeight " .. hum.JumpHeight))
+		add("Trạng thái", hum:GetState().Name)
+		add("RigType", hum.RigType.Name)
+	end
+	if lastTarget and lastTarget.Parent then
+		add("Vật vừa bấm", pathOf(lastTarget) .. "  [" .. lastTarget.ClassName .. "]")
+	else
+		add("Vật vừa bấm", "chưa bấm vào vật nào")
+	end
+	for _, r in ipairs(getExecRows()) do table.insert(rows, r) end
+	return rows
+end
+
+local function rowsToRich(rows)
+	local out, hex = {}, theme.accent2:ToHex()
+	for _, r in ipairs(rows) do
+		table.insert(out, string.format('<font color="#%s">%s</font>: %s', hex, esc(r[1]), esc(r[2])))
+	end
+	return table.concat(out, "\n")
+end
+
+-- ghi nhớ vật 3D vừa bấm (bấm trúng menu thì bỏ qua)
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		task.delay(0.03, function() lastTarget = diagMouse.Target end)
+	end
+end)
+
+-- phần 1: bảng số liệu trực tiếp
+toggle(diagCard, 1, "📊", "Bật Chuẩn Đoán", false, "Cài Đặt")
+local diagLabel = textPanel(diagCard, 2)
+local DIAG_IDLE = "Chuẩn Đoán đang tắt. Bật công tắc phía trên để xem FPS, Ping, bộ nhớ, vị trí, máu, vật vừa bấm và các hàm executor hỗ trợ."
+diagLabel.Text = DIAG_IDLE
+
+local function refreshDiag()
+	diagLabel.Text = rowsToRich(collectDiag())
+end
+
+Callbacks["Bật Chuẩn Đoán"] = function(on)
+	diagOn = on
+	if diagConn then
+		diagConn:Disconnect()
+		diagConn = nil
+	end
+	if not on then
+		diagLabel.Text = DIAG_IDLE
+		return
+	end
+	diagFps, diagAcc, diagFrames = 0, 0, 0
+	pcall(refreshDiag)
+	diagConn = RunService.Heartbeat:Connect(function(dt)
+		diagFrames += 1
+		diagAcc += dt
+		if diagAcc >= 0.5 then
+			diagFps = math.floor(diagFrames / diagAcc + 0.5)
+			diagFrames, diagAcc = 0, 0
+			if main.Visible and pages["Cài Đặt"].Visible then -- chỉ cập nhật khi đang xem trang này
+				local ok, err = pcall(refreshDiag)
+				if not ok then diagLabel.Text = "Lỗi chuẩn đoán: " .. esc(err) end
+			end
+		end
+	end)
+end
+
+-- phần 2: log console (print / warn / lỗi của game và script)
+toggle(diagCard, 3, "🧾", "Ghi Log Console", false, "Cài Đặt")
+local logLabel = textPanel(diagCard, 4)
+local LOG_IDLE = 'Chưa có log. Bật "Ghi Log Console" hoặc bấm "Quét Remote".'
+local LOG_COLORS = {
+	[Enum.MessageType.MessageError] = "#ff6b6b",
+	[Enum.MessageType.MessageWarning] = "#ffd166",
+	[Enum.MessageType.MessageInfo] = "#6ee7ff",
+}
+logLabel.Text = LOG_IDLE
+
+local logDirty = false
+local function renderLog()
+	logDirty = false
+	if #logLines == 0 then
+		logLabel.Text = LOG_IDLE
+		return
+	end
+	local out = {}
+	for i = math.max(1, #logLines - LOG_SHOW + 1), #logLines do
+		local l = logLines[i]
+		table.insert(out, string.format('<font color="%s">%s</font>', l.color, esc(l.text)))
+	end
+	logLabel.Text = table.concat(out, "\n")
+end
+
+local function addLog(text, mtype)
+	text = tostring(text)
+	local cut = utf8.offset(text, 221)
+	if cut then text = text:sub(1, cut - 1) .. "…" end
+	table.insert(logLines, { text = os.date("%H:%M:%S") .. "  " .. text, color = LOG_COLORS[mtype] or "#cdd9f5" })
+	if #logLines > LOG_MAX then table.remove(logLines, 1) end
+	if not logDirty then
+		logDirty = true
+		task.defer(renderLog)
+	end
+end
+
+Callbacks["Ghi Log Console"] = function(on)
+	logOn = on
+	if logConn then
+		logConn:Disconnect()
+		logConn = nil
+	end
+	if not on then return end
+	table.clear(logLines)
+	pcall(function()
+		local hist = LogService:GetLogHistory()
+		for i = math.max(1, #hist - 10), #hist do
+			addLog(hist[i].message, hist[i].messageType)
+		end
+	end)
+	logConn = LogService.MessageOut:Connect(addLog)
+	renderLog()
+end
+
+-- phần 3: nút tiện ích
+-- Thử lần lượt nhiều tên hàm clipboard của các executor (setclipboard / toclipboard / ...).
+-- Executor không có hàm nào: tự lưu ra file VuDong_Copy.txt + in ra console (F9) để vẫn lấy được nội dung.
+-- Trả về true nếu đã vào clipboard.
+local function copyText(txt, okMsg)
+	local tries = {
+		function() setclipboard(txt) end,
+		function() toclipboard(txt) end,
+		function() set_clipboard(txt) end,
+		function() setrbxclipboard(txt) end,
+		function() Clipboard.set(txt) end,
+		function() Clipboard.Set(txt) end,
+	}
+	for _, f in ipairs(tries) do
+		if pcall(f) then
+			setStatus(okMsg)
+			return true
+		end
+	end
+	local fname = "VuDong_Copy.txt"
+	local saved = pcall(writefile, fname, txt)
+	local chunk, size, total = {}, 0, 0
+	for ln in string.gmatch(txt, "[^\n]+") do
+		table.insert(chunk, ln)
+		size += #ln + 1
+		if size >= 6000 then
+			print(table.concat(chunk, "\n"))
+			total += size
+			chunk, size = {}, 0
+			if total >= 60000 then break end
+		end
+	end
+	if #chunk > 0 then print(table.concat(chunk, "\n")) end
+	local msg = saved and ("Executor không có clipboard - đã lưu file " .. fname .. " và in ra console (F9)")
+		or "Executor không có clipboard - đã in ra console (F9)"
+	setStatus(msg)
+	addLog(msg, Enum.MessageType.MessageInfo)
+	return false
+end
+
+actionRow(diagCard, 5, "📋", "Sao Chép Báo Cáo", "Chép", function()
+	local lines = { "=== Báo cáo chuẩn đoán Vu Dong Script ===" }
+	for _, r in ipairs(collectDiag()) do
+		table.insert(lines, r[1] .. ": " .. r[2])
+	end
+	if #logLines > 0 then
+		table.insert(lines, "--- Log gần đây ---")
+		for _, l in ipairs(logLines) do table.insert(lines, l.text) end
+	end
+	copyText(table.concat(lines, "\n"), "Đã sao chép báo cáo chuẩn đoán")
+end)
+
+actionRow(diagCard, 6, "📍", "Sao Chép Vị Trí", "Chép", function()
+	local char = player.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root then
+		setStatus("Chưa có nhân vật")
+		return
+	end
+	local p = root.Position
+	copyText(string.format("Vector3.new(%.2f, %.2f, %.2f)", p.X, p.Y, p.Z), "Đã sao chép vị trí")
+end)
+
+actionRow(diagCard, 7, "🎯", "Chép Đường Dẫn Vật", "Chép", function()
+	if not (lastTarget and lastTarget.Parent) then
+		setStatus("Hãy bấm vào một vật trong game trước")
+		return
+	end
+	copyText(pathOf(lastTarget), "Đã sao chép đường dẫn: " .. lastTarget.Name)
+end)
+
+actionRow(diagCard, 8, "📡", "Quét Remote", "Quét", function()
+	local found = {}
+	for _, d in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+		if d:IsA("RemoteEvent") or d:IsA("RemoteFunction") then
+			table.insert(found, d.ClassName .. ": " .. d:GetFullName())
+		end
+	end
+	addLog("Quét Remote: thấy " .. #found .. " remote trong ReplicatedStorage", Enum.MessageType.MessageInfo)
+	for i = 1, math.min(#found, 12) do
+		addLog(found[i], nil)
+	end
+	if #found > 12 then
+		addLog("... còn " .. (#found - 12) .. " remote nữa (có trong bản sao chép)", nil)
+	end
+	if #found > 0 then
+		copyText(table.concat(found, "\n"), "Đã sao chép " .. #found .. " remote")
+	else
+		setStatus("Không có remote nào trong ReplicatedStorage")
+	end
+end)
+
+actionRow(diagCard, 9, "🧹", "Xóa Log", "Xóa", function()
+	table.clear(logLines)
+	renderLog()
+	setStatus("Đã xóa log")
+end)
+
+----------------------------------------------------------------
+-- QUÉT MAP (trang Cài Đặt): đọc thông tin + vị trí vật trong TOÀN BỘ map (workspace)
+-- Dùng để viết script cho dễ: biết vật tên gì, loại gì, ở đâu, đường dẫn thế nào, bấm / nhặt được không...
+-- Gói trong khối do ... end để không tốn thêm biến local cấp ngoài (Luau giới hạn 200).
+-- Chỉnh SCAN_MAX / SCAN_PAGE / SCAN_CHEST ngay bên dưới nếu cần.
+-- LƯU Ý: game bật StreamingEnabled thì vật ở xa (chưa tải) chưa quét được - đi lại gần rồi quét lại.
+----------------------------------------------------------------
+do
+	local SCAN_MAX = 30000 -- tối đa số vật ghi nhận mỗi lần quét
+	local SCAN_PAGE = 10 -- số vật hiện trong khung mỗi trang
+	local SCAN_COPY_MAX = 60000 -- số ký tự tối đa MỖI LẦN chép (clipboard điện thoại không chứa nổi chuỗi quá lớn); chép tiếp bằng nút "Sao Chép Phần Tiếp" (Lưu File thì lưu đủ)
+	local SCAN_MARKS = 80 -- số nhãn 3D tối đa (ưu tiên vật gần bạn nhất)
+	local SCAN_CHEST = { "chest", "rương", "ruong" } -- viết thường; tên chứa từ này = loại "Rương"
+	local SCAN_CHEST_IGNORE = { "plate", "armor", "armour" }
+	local CATS = { "Tất Cả", "Model", "Part", "Tool", "Tương Tác", "NPC", "Rương", "Spawn/Ghế" }
+	local SCAN_IDLE = 'Chưa quét. Bấm "Quét Toàn Bộ Map" để đọc mọi vật trong workspace: tên, loại, đường dẫn, vị trí, kích thước... (Bán Kính 0 = toàn map).'
+
+	local scanCard = card(setCard.Parent, 3, "🗺️", "Quét Map", "Đọc & quét vị trí vật trong toàn bộ map", Color3.fromRGB(52, 211, 153))
+	rainbowCard(scanCard)
+
+	local all, view, marks = {}, {}, {} -- all = mọi vật đã quét, view = vật sau khi lọc, marks = nhãn 3D
+	local summaryLines = {}
+	local catFilter, radius, curPage, busy = "Tất Cả", 0, 1, false
+	local scanLabel -- khung chữ kết quả (tạo ở dưới)
+	local copier = { nextIdx = 1 } -- vị trí vật tiếp theo cần chép (chép từng phần)
+
+	local function fmtV(v)
+		return string.format("%.1f, %.1f, %.1f", v.X, v.Y, v.Z)
+	end
+
+	local function getRoot()
+		local ch = player.Character
+		return ch and ch:FindFirstChild("HumanoidRootPart")
+	end
+
+	local function isChest(name)
+		local l = string.lower(name)
+		for _, bad in ipairs(SCAN_CHEST_IGNORE) do
+			if string.find(l, bad, 1, true) then return false end
+		end
+		for _, kw in ipairs(SCAN_CHEST) do
+			if string.find(l, kw, 1, true) then return true end
+		end
+		return false
+	end
+
+	-- phân loại một đối tượng (nil = bỏ qua)
+	local function classify(inst)
+		if inst:IsA("ProximityPrompt") or inst:IsA("ClickDetector") then return "Tương Tác" end
+		if inst:IsA("Tool") then return "Tool" end
+		if inst:IsA("Model") then
+			if inst:FindFirstChildOfClass("Humanoid") then return "NPC" end
+			if isChest(inst.Name) then return "Rương" end
+			return "Model"
+		end
+		if inst:IsA("BasePart") then
+			if inst:IsA("Terrain") then return nil end
+			if inst:IsA("SpawnLocation") or inst:IsA("Seat") or inst:IsA("VehicleSeat") then return "Spawn/Ghế" end
+			if isChest(inst.Name) then return "Rương" end
+			return "Part"
+		end
+		return nil
+	end
+
+	-- vị trí của đối tượng (Prompt / Click lấy theo vật cha)
+	local function posOf(inst)
+		local ok, p = pcall(function()
+			if inst:IsA("BasePart") then return inst.Position end
+			if inst:IsA("Model") then return inst:GetPivot().Position end
+			if inst:IsA("Tool") then
+				local h = inst:FindFirstChild("Handle")
+				if h and h:IsA("BasePart") then return h.Position end
+			end
+			local par = inst.Parent
+			while par and par ~= workspace do
+				if par:IsA("BasePart") then return par.Position end
+				if par:IsA("Model") then return par:GetPivot().Position end
+				par = par.Parent
+			end
+			return nil
+		end)
+		if ok then return p end
+		return nil
+	end
+
+	-- thông tin thêm (tính khi cần hiển thị, không tính lúc quét cho nhẹ)
+	local function extraOf(inst)
+		local t = {}
+		pcall(function()
+			if inst:IsA("BasePart") then
+				table.insert(t, "Size " .. fmtV(inst.Size))
+				table.insert(t, inst.Anchored and "Anchored" or "Free")
+				table.insert(t, inst.CanCollide and "CanCollide" or "NoCollide")
+				if inst.Transparency >= 1 then table.insert(t, "vô hình") end
+			elseif inst:IsA("Model") then
+				local hum = inst:FindFirstChildOfClass("Humanoid")
+				if hum then
+					table.insert(t, string.format("Máu %.0f/%.0f", hum.Health, hum.MaxHealth))
+					if Players:GetPlayerFromCharacter(inst) then table.insert(t, "người chơi") end
+				end
+				if inst.PrimaryPart then table.insert(t, "PrimaryPart=" .. inst.PrimaryPart.Name) end
+				table.insert(t, #inst:GetChildren() .. " con")
+			elseif inst:IsA("ProximityPrompt") then
+				table.insert(t, string.format("ActionText=%q ObjectText=%q Hold=%.1fs Tầm=%.0f %s", inst.ActionText, inst.ObjectText,
+					inst.HoldDuration, inst.MaxActivationDistance, inst.Enabled and "Bật" or "Tắt"))
+			elseif inst:IsA("ClickDetector") then
+				table.insert(t, string.format("Tầm=%.0f", inst.MaxActivationDistance))
+			elseif inst:IsA("Tool") then
+				table.insert(t, inst:FindFirstChild("Handle") and "có Handle" or "không Handle")
+			end
+		end)
+		pcall(function()
+			local n = 0
+			for k, v in pairs(inst:GetAttributes()) do
+				n += 1
+				if n > 4 then break end
+				table.insert(t, k .. "=" .. tostring(v))
+			end
+		end)
+		return table.concat(t, " | ")
+	end
+
+	-- một dòng đầy đủ (dùng cho sao chép / lưu file / console)
+	local function fullLine(i, e)
+		local parts = {
+			string.format("#%d [%s] %s", i, e.cat, e.cls),
+			pathOf(e.inst),
+			e.pos and string.format("Vector3.new(%.2f, %.2f, %.2f)", e.pos.X, e.pos.Y, e.pos.Z) or "không rõ vị trí",
+		}
+		if e.dist then table.insert(parts, string.format("cách %.1f stud", e.dist)) end
+		local x = extraOf(e.inst)
+		if x ~= "" then table.insert(parts, x) end
+		return table.concat(parts, " | ")
+	end
+
+	local function buildReport(maxLines)
+		local lines = { "=== Vu Dong Script - Quét Map (PlaceId " .. tostring(game.PlaceId) .. ") ===" }
+		for _, s in ipairs(summaryLines) do table.insert(lines, s) end
+		table.insert(lines, string.format("Bộ lọc: %s | Bán kính: %s | %d kết quả", catFilter,
+			radius > 0 and (radius .. " stud") or "toàn map", #view))
+		table.insert(lines, "--------------------------------------------")
+		for i = 1, math.min(#view, maxLines) do
+			table.insert(lines, fullLine(i, view[i]))
+			if i % 1500 == 0 then task.wait() end
+		end
+		if #view > maxLines then
+			table.insert(lines, "... còn " .. (#view - maxLines) .. " dòng nữa (dùng nút Lưu File để lấy đủ)")
+		end
+		return table.concat(lines, "\n")
+	end
+
+	-- chép từng phần: mỗi lần tối đa SCAN_COPY_MAX ký tự, bấm "Sao Chép Phần Tiếp" để chép phần sau
+	function copier.run(reset)
+		if #all == 0 then
+			setStatus("Hãy quét map trước")
+			return
+		end
+		if #view == 0 then
+			setStatus("Không có kết quả khớp bộ lọc để chép")
+			return
+		end
+		if reset then copier.nextIdx = 1 end
+		local from = copier.nextIdx
+		if from > #view then
+			setStatus("Đã chép hết - bấm Sao Chép Kết Quả để chép lại từ đầu")
+			return
+		end
+		local lines, bytes = {}, 0
+		if from == 1 then
+			table.insert(lines, "=== Vu Dong Script - Quét Map (PlaceId " .. tostring(game.PlaceId) .. ") ===")
+			for _, s in ipairs(summaryLines) do table.insert(lines, s) end
+			table.insert(lines, string.format("Bộ lọc: %s | Bán kính: %s | %d kết quả", catFilter,
+				radius > 0 and (radius .. " stud") or "toàn map", #view))
+			table.insert(lines, "--------------------------------------------")
+			for _, s in ipairs(lines) do bytes += #s + 1 end
+		end
+		local i = from
+		while i <= #view do
+			local ln = fullLine(i, view[i])
+			if bytes + #ln + 1 > SCAN_COPY_MAX and i > from then break end
+			table.insert(lines, ln)
+			bytes += #ln + 1
+			i += 1
+			if i % 1000 == 0 then task.wait() end
+		end
+		local last = i - 1
+		local msg = string.format("Đã chép #%d-#%d / %d%s", from, last, #view,
+			last < #view and " - bấm Sao Chép Phần Tiếp để chép tiếp" or " (hết)")
+		if copyText(table.concat(lines, "\n"), msg) then
+			copier.nextIdx = last + 1
+		end
+	end
+
+	-- hiển thị kết quả trong khung chữ
+	local function render()
+		if not scanLabel then return end
+		if #all == 0 then
+			scanLabel.Text = esc(SCAN_IDLE)
+			return
+		end
+		local hex = theme.accent2:ToHex()
+		local out = {}
+		for _, s in ipairs(summaryLines) do table.insert(out, esc(s)) end
+		local totalPages = math.max(1, math.ceil(#view / SCAN_PAGE))
+		curPage = math.clamp(curPage, 1, totalPages)
+		table.insert(out, string.format('<font color="#%s">── Trang %d/%d · %d kết quả · lọc: %s · bán kính: %s ──</font>',
+			hex, curPage, totalPages, #view, esc(catFilter), radius > 0 and (radius .. " stud") or "toàn map"))
+		for i = (curPage - 1) * SCAN_PAGE + 1, math.min(#view, curPage * SCAN_PAGE) do
+			local e = view[i]
+			local where = e.pos and fmtV(e.pos) or "không rõ vị trí"
+			local dist = e.dist and string.format(" · cách %.0f", e.dist) or ""
+			table.insert(out, string.format('<font color="#%s">#%d [%s]</font> %s\n      %s%s',
+				hex, i, esc(e.cat), esc(e.name), esc(where), dist))
+		end
+		if #view == 0 then table.insert(out, "(không có vật nào khớp bộ lọc)") end
+		scanLabel.Text = table.concat(out, "\n")
+	end
+
+	-- lọc theo loại + bán kính, sắp xếp từ gần đến xa
+	local function applyFilter()
+		table.clear(view)
+		copier.nextIdx = 1
+		local root = getRoot()
+		local rp = root and root.Position
+		for _, e in ipairs(all) do
+			if catFilter == "Tất Cả" or e.cat == catFilter then
+				local d = (rp and e.pos) and (e.pos - rp).Magnitude or nil
+				if radius <= 0 or (d and d <= radius) then
+					e.dist = d
+					table.insert(view, e)
+				end
+			end
+		end
+		table.sort(view, function(a, b)
+			local da, db = a.dist or math.huge, b.dist or math.huge
+			if da ~= db then return da < db end
+			return a.name < b.name
+		end)
+	end
+
+	-- nhãn 3D trong game: hiện tên + tọa độ trên các vật gần bạn nhất (xuyên tường)
+	local function clearMarks()
+		for _, g in ipairs(marks) do g:Destroy() end
+		table.clear(marks)
+	end
+
+	local function adorneeOf(inst)
+		if inst:IsA("BasePart") then return inst end
+		if inst:IsA("Model") then return inst.PrimaryPart or inst:FindFirstChildWhichIsA("BasePart", true) end
+		if inst:IsA("Tool") then
+			local h = inst:FindFirstChild("Handle")
+			if h and h:IsA("BasePart") then return h end
+		end
+		local par = inst.Parent
+		while par and par ~= workspace do
+			if par:IsA("BasePart") then return par end
+			if par:IsA("Model") then return par.PrimaryPart or par:FindFirstChildWhichIsA("BasePart", true) end
+			par = par.Parent
+		end
+		return nil
+	end
+
+	local function drawMarks()
+		clearMarks()
+		if not State["Hiện Nhãn Vị Trí"] then return end
+		local gui = player:FindFirstChildOfClass("PlayerGui")
+		if not gui then return end
+		for i = 1, math.min(#view, SCAN_MARKS) do
+			local e = view[i]
+			local ok, part = pcall(adorneeOf, e.inst)
+			if ok and part and part.Parent then
+				local bb = Instance.new("BillboardGui")
+				bb.Name = "VuDongMapMark"
+				bb.Adornee = part
+				bb.AlwaysOnTop = true
+				bb.ResetOnSpawn = false
+				bb.Size = UDim2.fromOffset(220, 46)
+				bb.StudsOffset = Vector3.new(0, 2, 0)
+				bb.MaxDistance = 2000
+				local t = Instance.new("TextLabel")
+				t.BackgroundTransparency = 1
+				t.Size = UDim2.fromScale(1, 1)
+				t.Font = Enum.Font.SourceSansBold
+				t.TextSize = 14
+				t.TextWrapped = true
+				t.TextColor3 = Color3.fromRGB(110, 231, 183)
+				t.TextStrokeTransparency = 0
+				t.Text = string.format("#%d %s\n%s", i, e.name, e.pos and fmtV(e.pos) or "")
+				t.Parent = bb
+				bb.Parent = gui
+				table.insert(marks, bb)
+			end
+		end
+	end
+
+	-- đổi bộ lọc / bán kính: gom lại, chờ 0.25s rồi mới tính (kéo thanh trượt không bị giật)
+	local refreshToken = 0
+	local function refreshSoon()
+		refreshToken += 1
+		local my = refreshToken
+		task.delay(0.25, function()
+			if my == refreshToken and #all > 0 then
+				applyFilter()
+				render()
+				drawMarks()
+			end
+		end)
+	end
+
+	-- QUÉT TOÀN BỘ MAP
+	local function runScan()
+		if busy then
+			setStatus("Đang quét, chờ chút...")
+			return
+		end
+		busy = true
+		setStatus("Đang quét map...")
+		local t0 = os.clock()
+		table.clear(all)
+
+		-- bỏ qua phần thân bên trong nhân vật người chơi (cho đỡ rối), vẫn giữ chính nhân vật
+		local skip = {}
+		for _, p in ipairs(Players:GetPlayers()) do
+			local ch = p.Character
+			if ch then
+				for _, d in ipairs(ch:GetDescendants()) do skip[d] = true end
+			end
+		end
+
+		local counts, capped = {}, false
+		local minP, maxP, sumP, nPos = nil, nil, Vector3.zero, 0
+		local ok, err = pcall(function()
+			local n = 0
+			for _, inst in ipairs(workspace:GetDescendants()) do
+				n += 1
+				if n % 1500 == 0 then task.wait() end -- nhường khung hình để game không đứng
+				if not skip[inst] then
+					local cat = classify(inst)
+					if cat then
+						local pos = posOf(inst)
+						table.insert(all, { inst = inst, name = inst.Name, cls = inst.ClassName, cat = cat, pos = pos })
+						counts[cat] = (counts[cat] or 0) + 1
+						if pos then
+							nPos += 1
+							sumP += pos
+							minP = minP and Vector3.new(math.min(minP.X, pos.X), math.min(minP.Y, pos.Y), math.min(minP.Z, pos.Z)) or pos
+							maxP = maxP and Vector3.new(math.max(maxP.X, pos.X), math.max(maxP.Y, pos.Y), math.max(maxP.Z, pos.Z)) or pos
+						end
+						if #all >= SCAN_MAX then
+							capped = true
+							break
+						end
+					end
+				end
+			end
+		end)
+		busy = false
+		if not ok then
+			setStatus("Lỗi quét map: " .. tostring(err))
+			addLog("Lỗi quét map: " .. tostring(err), Enum.MessageType.MessageError)
+			return
+		end
+
+		table.clear(summaryLines)
+		table.insert(summaryLines, string.format("Đã quét %d vật trong workspace (%.1f giây)", #all, os.clock() - t0))
+		local cs = {}
+		for _, name in ipairs(CATS) do
+			if counts[name] then table.insert(cs, name .. " " .. counts[name]) end
+		end
+		table.insert(summaryLines, #cs > 0 and table.concat(cs, " · ") or "(không thấy vật nào)")
+		if minP and maxP then
+			table.insert(summaryLines, string.format("Khung map: X %.0f→%.0f | Y %.0f→%.0f | Z %.0f→%.0f",
+				minP.X, maxP.X, minP.Y, maxP.Y, minP.Z, maxP.Z))
+			local c = sumP / nPos
+			table.insert(summaryLines, string.format("Tâm trung bình: %s", fmtV(c)))
+		end
+		local root = getRoot()
+		if root then table.insert(summaryLines, "Vị trí bạn lúc quét: " .. fmtV(root.Position)) end
+		if workspace.StreamingEnabled then
+			table.insert(summaryLines, "⚠ Game bật StreamingEnabled: vật ở xa chưa tải sẽ chưa quét được")
+		end
+		if capped then
+			table.insert(summaryLines, "⚠ Chạm giới hạn " .. SCAN_MAX .. " vật - tăng SCAN_MAX nếu cần quét hết")
+		end
+
+		curPage = 1
+		applyFilter()
+		render()
+		drawMarks()
+		addLog(summaryLines[1], Enum.MessageType.MessageInfo)
+		setStatus("Quét xong: " .. #all .. " vật")
+	end
+
+	-- giao diện: mỗi hàng một chức năng
+	actionRow(scanCard, 1, "🗺️", "Quét Toàn Bộ Map", "Quét", runScan)
+
+	dropdown(scanCard, 2, "🔎", "Lọc Loại Vật", CATS, "Tất Cả", function(name)
+		catFilter = name
+		curPage = 1
+		refreshSoon()
+		setStatus("Lọc: " .. name)
+	end)
+
+	slider(scanCard, 3, "📏", "Bán Kính", 0, 2000, 0, function(v)
+		radius = v
+		curPage = 1
+		refreshSoon()
+	end)
+
+	scanLabel = textPanel(scanCard, 4)
+	scanLabel.Text = esc(SCAN_IDLE)
+
+	actionRow(scanCard, 5, "◀️", "Trang Trước", "◀", function()
+		local totalPages = math.max(1, math.ceil(#view / SCAN_PAGE))
+		curPage = curPage - 1
+		if curPage < 1 then curPage = totalPages end
+		render()
+	end)
+
+	actionRow(scanCard, 6, "▶️", "Trang Sau", "▶", function()
+		local totalPages = math.max(1, math.ceil(#view / SCAN_PAGE))
+		curPage = curPage + 1
+		if curPage > totalPages then curPage = 1 end
+		render()
+	end)
+
+	toggle(scanCard, 7, "🏷️", "Hiện Nhãn Vị Trí", false, "Cài Đặt")
+	Callbacks["Hiện Nhãn Vị Trí"] = function(on)
+		if on then drawMarks() else clearMarks() end
+	end
+
+	actionRow(scanCard, 8, "📋", "Sao Chép Kết Quả", "Chép", function()
+		copier.run(true)
+	end)
+
+	actionRow(scanCard, 9, "⏭️", "Sao Chép Phần Tiếp", "Tiếp", function()
+		copier.run(false)
+	end)
+
+	actionRow(scanCard, 10, "💾", "Lưu File .txt", "Lưu", function()
+		if #all == 0 then
+			setStatus("Hãy quét map trước")
+			return
+		end
+		local fname = "VuDong_MapScan_" .. tostring(game.PlaceId) .. ".txt"
+		if pcall(writefile, fname, buildReport(math.huge)) then
+			setStatus("Đã lưu " .. #view .. " dòng vào file " .. fname)
+			addLog("Đã lưu quét map: " .. fname, Enum.MessageType.MessageInfo)
+		else
+			setStatus("Executor không hỗ trợ writefile - dùng nút Sao Chép")
+		end
+	end)
+
+	actionRow(scanCard, 11, "🎯", "Chép Vật Gần Nhất", "Chép", function()
+		local e = view[1]
+		if not e then
+			setStatus("Chưa có kết quả - hãy quét map trước")
+			return
+		end
+		copyText(fullLine(1, e), "Đã sao chép vật gần nhất: " .. e.name)
+	end)
+
+	actionRow(scanCard, 12, "🖨️", "In Ra Console", "In", function()
+		if #view == 0 then
+			setStatus("Chưa có kết quả - hãy quét map trước")
+			return
+		end
+		local n = math.min(#view, 300)
+		print("=== Vu Dong Script - Quét Map: " .. #view .. " kết quả (in " .. n .. " dòng đầu) ===")
+		for i = 1, n do print(fullLine(i, view[i])) end
+		setStatus("Đã in " .. n .. " dòng ra console")
+	end)
+
+	actionRow(scanCard, 13, "🧹", "Xóa Kết Quả Quét", "Xóa", function()
+		table.clear(all)
+		table.clear(view)
+		table.clear(summaryLines)
+		clearMarks()
+		curPage = 1
+		render()
+		setStatus("Đã xóa kết quả quét")
+	end)
+end -- hết khối Quét Map
+
+----------------------------------------------------------------
+-- QUÉT VẬT PHẨM (trang Cài Đặt): tìm & liệt kê các VẬT PHẨM trong game
+-- Gồm: vật nhặt được (ProximityPrompt / ClickDetector / chạm TouchInterest), Tool rơi trong map,
+-- vật có tên giống vật phẩm (coin, gem, fruit, potion...), đồ đang có trong Túi Đồ, Tool / vật phẩm trong ReplicatedStorage.
+-- Muốn thêm / bớt từ khóa: sửa ITEM_WORDS / PICK_WORDS bên dưới (viết thường).
+-- Gói trong khối do ... end để không tốn thêm biến local cấp ngoài (Luau giới hạn 200).
+-- LƯU Ý: game bật StreamingEnabled thì vật ở xa (chưa tải) chưa quét được - đi lại gần rồi quét lại.
+----------------------------------------------------------------
+do
+	local ITEM_MAX = 20000 -- tối đa số mục ghi nhận mỗi lần quét
+	local ITEM_PAGE = 10 -- số mục hiện trong khung mỗi trang
+	local ITEM_COPY_MAX = 60000 -- số ký tự tối đa MỖI LẦN chép (chép tiếp bằng nút "Sao Chép Phần Tiếp")
+	local ITEM_MARKS = 80 -- số nhãn 3D tối đa (ưu tiên vật gần bạn nhất)
+	-- tên chứa từ này (viết thường) = coi là vật phẩm
+	local ITEM_WORDS = {
+		"coin", "gem", "cash", "money", "gold", "diamond", "crystal", "orb", "fruit", "apple", "egg", "potion",
+		"loot", "drop", "item", "pickup", "collect", "reward", "gift", "token", "ticket", "shard", "essence",
+		"scroll", "weapon", "sword", "seed", "relic", "rune", "tiền", "vàng", "kim cương", "vật phẩm", "vat pham", "trái", "quả",
+	}
+	-- chữ trên nút tương tác (ActionText) hoặc tên chứa từ này = nhặt / lấy được
+	local PICK_WORDS = { "pick", "collect", "take", "grab", "loot", "claim", "harvest", "gather", "nhặt", "nhat", "lấy", "thu thập", "hái" }
+	local ITEM_IGNORE = { "plate", "armor", "armour" } -- tên chứa từ này thì KHÔNG tính là vật phẩm
+	local ICATS = { "Tất Cả", "Có Thể Nhặt", "Tool", "Chạm", "Tương Tác Khác", "Theo Tên", "Túi Đồ", "Kho Game" }
+	local PRI = { ["Có Thể Nhặt"] = 1, ["Tool"] = 2, ["Chạm"] = 3, ["Tương Tác Khác"] = 4, ["Theo Tên"] = 5 } -- số nhỏ = ưu tiên
+	local ITEM_IDLE = 'Chưa quét. Bấm "Quét Vật Phẩm" để tìm: vật nhặt được (Prompt / Click / chạm), Tool rơi trong map, vật có tên giống vật phẩm, đồ trong Túi Đồ và kho game. (Bán Kính 0 = toàn map).'
+
+	local itemCard = card(setCard.Parent, 4, "🎒", "Quét Vật Phẩm", "Tìm vật nhặt được, Tool, vật phẩm trong map & túi đồ", Color3.fromRGB(251, 191, 36))
+	rainbowCard(itemCard)
+
+	-- all = mọi mục đã quét, view = sau khi lọc, owners = vật chủ đã ghi nhận (chống trùng), sum = dòng tóm tắt
+	local S = { all = {}, view = {}, marks = {}, owners = {}, sum = {}, cat = "Tất Cả", radius = 0, page = 1, busy = false, scanned = false, copyNext = 1, token = 0 }
+	local itemLabel -- khung chữ kết quả (tạo ở dưới)
+
+	local function fmtV(v)
+		return string.format("%.1f, %.1f, %.1f", v.X, v.Y, v.Z)
+	end
+
+	local function getRoot()
+		local ch = player.Character
+		return ch and ch:FindFirstChild("HumanoidRootPart")
+	end
+
+	local function hasWord(s, list, useIgnore)
+		if useIgnore then
+			for _, bad in ipairs(ITEM_IGNORE) do
+				if string.find(s, bad, 1, true) then return false end
+			end
+		end
+		for _, kw in ipairs(list) do
+			if string.find(s, kw, 1, true) then return true end
+		end
+		return false
+	end
+
+	-- vị trí của vật chủ
+	local function posOf(o)
+		local ok, p = pcall(function()
+			if o:IsA("BasePart") then return o.Position end
+			if o:IsA("Model") then return o:GetPivot().Position end
+			if o:IsA("Tool") then
+				local h = o:FindFirstChild("Handle")
+				if not (h and h:IsA("BasePart")) then h = o:FindFirstChildWhichIsA("BasePart", true) end
+				if h then return h.Position end
+			end
+			return nil
+		end)
+		if ok then return p end
+		return nil
+	end
+
+	-- tên hiển thị: "Model/Part" nếu nằm trong model, ngược lại chỉ tên
+	local function dispName(o)
+		local p = o.Parent
+		if p and p ~= workspace and p:IsA("Model") then
+			return p.Name .. "/" .. o.Name
+		end
+		return o.Name
+	end
+
+	-- xét một đối tượng trong workspace, nếu là vật phẩm thì ghi vào S.all
+	local function consider(inst)
+		local cat, owner
+		if inst:IsA("ProximityPrompt") or inst:IsA("ClickDetector") or inst:IsA("TouchTransmitter") then
+			owner = inst.Parent
+			if owner and owner:IsA("Attachment") then owner = owner.Parent end
+			if not owner then return end
+			if inst:IsA("TouchTransmitter") and not owner:IsA("BasePart") then return end
+			if owner.Parent and owner.Parent:IsA("Tool") then owner = owner.Parent end
+			if owner.Parent and S.owners[owner.Parent] then owner = owner.Parent end -- phần của vật đã ghi nhận
+			local txt = string.lower(owner.Name)
+			if owner.Parent and owner.Parent ~= workspace then txt = txt .. " " .. string.lower(owner.Parent.Name) end
+			if inst:IsA("ProximityPrompt") then
+				txt = txt .. " " .. string.lower(inst.ActionText .. " " .. inst.ObjectText)
+			end
+			if hasWord(txt, PICK_WORDS, false) or hasWord(txt, ITEM_WORDS, true) then
+				cat = "Có Thể Nhặt"
+			elseif inst:IsA("TouchTransmitter") then
+				cat = "Chạm"
+			else
+				cat = "Tương Tác Khác"
+			end
+		elseif inst:IsA("Tool") then
+			cat, owner = "Tool", inst
+		elseif inst:IsA("Model") or (inst:IsA("BasePart") and not inst:IsA("Terrain")) then
+			if S.owners[inst.Parent] then return end -- phần của vật đã ghi nhận
+			if inst:IsA("Model") and inst:FindFirstChildOfClass("Humanoid") then return end -- bỏ NPC / người chơi
+			if not hasWord(string.lower(inst.Name), ITEM_WORDS, true) then return end
+			cat, owner = "Theo Tên", inst
+		else
+			return
+		end
+
+		local old = S.owners[owner]
+		if old then
+			if PRI[cat] < PRI[old.cat] then
+				old.cat, old.inst, old.cls = cat, inst, inst.ClassName
+			end
+			return
+		end
+		local e = { inst = inst, owner = owner, name = dispName(owner), cls = inst.ClassName, cat = cat, pos = posOf(owner) }
+		S.owners[owner] = e
+		table.insert(S.all, e)
+	end
+
+	-- thông tin thêm (tính khi cần hiển thị)
+	local function extraOf(e)
+		local t = {}
+		pcall(function()
+			local i, o = e.inst, e.owner
+			if i:IsA("ProximityPrompt") then
+				table.insert(t, string.format("Prompt ActionText=%q ObjectText=%q Hold=%.1fs Tầm=%.0f %s", i.ActionText, i.ObjectText,
+					i.HoldDuration, i.MaxActivationDistance, i.Enabled and "Bật" or "Tắt"))
+			elseif i:IsA("ClickDetector") then
+				table.insert(t, string.format("ClickDetector Tầm=%.0f", i.MaxActivationDistance))
+			elseif i:IsA("TouchTransmitter") then
+				table.insert(t, "TouchInterest (chạm vào để nhặt / kích hoạt)")
+			end
+			if o:IsA("Tool") then
+				table.insert(t, o:FindFirstChild("Handle") and "có Handle" or "không Handle")
+				table.insert(t, o.CanBeDropped and "thả được" or "không thả")
+				if o.ToolTip ~= "" then table.insert(t, "ToolTip=" .. o.ToolTip) end
+				table.insert(t, "Cha=" .. (o.Parent and o.Parent.Name or "?"))
+			elseif o:IsA("BasePart") then
+				table.insert(t, "Size " .. fmtV(o.Size))
+				table.insert(t, o.Anchored and "Anchored" or "Free")
+				if o.Transparency >= 1 then table.insert(t, "vô hình") end
+			elseif o:IsA("Model") then
+				table.insert(t, #o:GetChildren() .. " con")
+			end
+		end)
+		pcall(function()
+			local n = 0
+			for k, v in pairs(e.owner:GetAttributes()) do
+				n += 1
+				if n > 4 then break end
+				table.insert(t, k .. "=" .. tostring(v))
+			end
+		end)
+		return table.concat(t, " | ")
+	end
+
+	-- một dòng đầy đủ (dùng cho sao chép / lưu file / console)
+	local function fullLine(i, e)
+		local parts = {
+			string.format("#%d [%s] %s | %s", i, e.cat, e.name, e.cls),
+			pathOf(e.inst),
+			e.pos and string.format("Vector3.new(%.2f, %.2f, %.2f)", e.pos.X, e.pos.Y, e.pos.Z) or "không rõ vị trí",
+		}
+		if e.dist then table.insert(parts, string.format("cách %.1f stud", e.dist)) end
+		local x = extraOf(e)
+		if x ~= "" then table.insert(parts, x) end
+		return table.concat(parts, " | ")
+	end
+
+	local function headerLines()
+		local lines = { "=== Vu Dong Script - Quét Vật Phẩm (PlaceId " .. tostring(game.PlaceId) .. ") ===" }
+		for _, s in ipairs(S.sum) do table.insert(lines, s) end
+		table.insert(lines, string.format("Bộ lọc: %s | Bán kính: %s | %d kết quả", S.cat,
+			S.radius > 0 and (S.radius .. " stud") or "toàn map", #S.view))
+		table.insert(lines, "--------------------------------------------")
+		return lines
+	end
+
+	-- báo cáo đầy đủ (dùng cho Lưu File)
+	local function buildReport()
+		local lines = headerLines()
+		for i = 1, #S.view do
+			table.insert(lines, fullLine(i, S.view[i]))
+			if i % 1500 == 0 then task.wait() end
+		end
+		return table.concat(lines, "\n")
+	end
+
+	-- hiển thị kết quả trong khung chữ
+	local function render()
+		if not itemLabel then return end
+		if not S.scanned then
+			itemLabel.Text = esc(ITEM_IDLE)
+			return
+		end
+		local view = S.view
+		local hex = theme.accent2:ToHex()
+		local out = {}
+		for _, s in ipairs(S.sum) do table.insert(out, esc(s)) end
+		local totalPages = math.max(1, math.ceil(#view / ITEM_PAGE))
+		S.page = math.clamp(S.page, 1, totalPages)
+		table.insert(out, string.format('<font color="#%s">── Trang %d/%d · %d kết quả · lọc: %s · bán kính: %s ──</font>',
+			hex, S.page, totalPages, #view, esc(S.cat), S.radius > 0 and (S.radius .. " stud") or "toàn map"))
+		for i = (S.page - 1) * ITEM_PAGE + 1, math.min(#view, S.page * ITEM_PAGE) do
+			local e = view[i]
+			local where = e.pos and fmtV(e.pos) or "không rõ vị trí"
+			local dist = e.dist and string.format(" · cách %.0f", e.dist) or ""
+			table.insert(out, string.format('<font color="#%s">#%d [%s]</font> %s\n      %s%s · %s',
+				hex, i, esc(e.cat), esc(e.name), esc(where), dist, esc(e.cls)))
+		end
+		if #view == 0 then table.insert(out, "(không có vật phẩm nào khớp bộ lọc)") end
+		itemLabel.Text = table.concat(out, "\n")
+	end
+
+	-- lọc theo loại + bán kính, sắp xếp từ gần đến xa
+	local function applyFilter()
+		local view = S.view
+		table.clear(view)
+		S.copyNext = 1
+		local root = getRoot()
+		local rp = root and root.Position
+		for _, e in ipairs(S.all) do
+			if S.cat == "Tất Cả" or e.cat == S.cat then
+				local d = (rp and e.pos) and (e.pos - rp).Magnitude or nil
+				e.dist = d
+				if S.radius <= 0 or (d and d <= S.radius) then
+					table.insert(view, e)
+				end
+			end
+		end
+		table.sort(view, function(a, b)
+			local da, db = a.dist or math.huge, b.dist or math.huge
+			if da ~= db then return da < db end
+			return a.name < b.name
+		end)
+	end
+
+	-- nhãn 3D trong game: hiện tên + tọa độ trên các vật phẩm gần bạn nhất (xuyên tường)
+	local function clearMarks()
+		for _, g in ipairs(S.marks) do g:Destroy() end
+		table.clear(S.marks)
+	end
+
+	local function adorneeOf(o)
+		if o:IsA("BasePart") then return o end
+		if o:IsA("Model") then return o.PrimaryPart or o:FindFirstChildWhichIsA("BasePart", true) end
+		if o:IsA("Tool") then
+			local h = o:FindFirstChild("Handle")
+			if h and h:IsA("BasePart") then return h end
+			return o:FindFirstChildWhichIsA("BasePart", true)
+		end
+		return nil
+	end
+
+	local function drawMarks()
+		clearMarks()
+		if not State["Hiện Nhãn Vật Phẩm"] then return end
+		local gui = player:FindFirstChildOfClass("PlayerGui")
+		if not gui then return end
+		local n = 0
+		for i = 1, #S.view do
+			if n >= ITEM_MARKS then break end
+			local e = S.view[i]
+			if e.pos then
+				local ok, part = pcall(adorneeOf, e.owner)
+				if ok and part and part:IsDescendantOf(workspace) then
+					n += 1
+					local bb = Instance.new("BillboardGui")
+					bb.Name = "VuDongItemMark"
+					bb.Adornee = part
+					bb.AlwaysOnTop = true
+					bb.ResetOnSpawn = false
+					bb.Size = UDim2.fromOffset(220, 46)
+					bb.StudsOffset = Vector3.new(0, 2, 0)
+					bb.MaxDistance = 2000
+					local t = Instance.new("TextLabel")
+					t.BackgroundTransparency = 1
+					t.Size = UDim2.fromScale(1, 1)
+					t.Font = Enum.Font.SourceSansBold
+					t.TextSize = 14
+					t.TextWrapped = true
+					t.TextColor3 = Color3.fromRGB(251, 191, 36)
+					t.TextStrokeTransparency = 0
+					t.Text = string.format("#%d %s\n%s", i, e.name, fmtV(e.pos))
+					t.Parent = bb
+					bb.Parent = gui
+					table.insert(S.marks, bb)
+				end
+			end
+		end
+	end
+
+	-- đổi bộ lọc / bán kính: gom lại, chờ 0.25s rồi mới tính (kéo thanh trượt không bị giật)
+	local function refreshSoon()
+		S.token += 1
+		local my = S.token
+		task.delay(0.25, function()
+			if my == S.token and S.scanned then
+				applyFilter()
+				render()
+				drawMarks()
+			end
+		end)
+	end
+
+	-- QUÉT VẬT PHẨM
+	local function runScan()
+		if S.busy then
+			setStatus("Đang quét, chờ chút...")
+			return
+		end
+		S.busy = true
+		setStatus("Đang quét vật phẩm...")
+		local t0 = os.clock()
+		table.clear(S.all)
+		table.clear(S.owners)
+
+		-- bỏ qua phần thân bên trong nhân vật người chơi (đồ đang cầm đã có ở mục Túi Đồ)
+		local skip = {}
+		for _, p in ipairs(Players:GetPlayers()) do
+			local ch = p.Character
+			if ch then
+				for _, d in ipairs(ch:GetDescendants()) do skip[d] = true end
+			end
+		end
+
+		local capped = false
+		local ok, err = pcall(function()
+			local n = 0
+			for _, inst in ipairs(workspace:GetDescendants()) do
+				n += 1
+				if n % 1500 == 0 then task.wait() end -- nhường khung hình để game không đứng
+				if not skip[inst] then
+					pcall(consider, inst)
+					if #S.all >= ITEM_MAX then
+						capped = true
+						break
+					end
+				end
+			end
+
+			-- mục không có vị trí trong map: đồ của bạn + kho game
+			local function addPlain(o, cat)
+				table.insert(S.all, { inst = o, owner = o, name = o.Name, cls = o.ClassName, cat = cat, pos = nil })
+			end
+			local bp = player:FindFirstChildOfClass("Backpack")
+			if bp then
+				for _, t in ipairs(bp:GetChildren()) do
+					if t:IsA("Tool") then addPlain(t, "Túi Đồ") end
+				end
+			end
+			local ch = player.Character
+			if ch then
+				for _, t in ipairs(ch:GetChildren()) do
+					if t:IsA("Tool") then addPlain(t, "Túi Đồ") end
+				end
+			end
+			local m = 0
+			for _, d in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+				m += 1
+				if m % 1500 == 0 then task.wait() end
+				if #S.all >= ITEM_MAX then
+					capped = true
+					break
+				end
+				if d:IsA("Tool") then
+					addPlain(d, "Kho Game")
+				elseif (d:IsA("Model") or d:IsA("BasePart") or d:IsA("Folder") or d:IsA("ModuleScript"))
+					and hasWord(string.lower(d.Name), ITEM_WORDS, true) then
+					addPlain(d, "Kho Game")
+				end
+			end
+		end)
+		S.busy = false
+		table.clear(S.owners)
+		if not ok then
+			setStatus("Lỗi quét vật phẩm: " .. tostring(err))
+			addLog("Lỗi quét vật phẩm: " .. tostring(err), Enum.MessageType.MessageError)
+			return
+		end
+
+		local counts = {}
+		for _, e in ipairs(S.all) do counts[e.cat] = (counts[e.cat] or 0) + 1 end
+		table.clear(S.sum)
+		table.insert(S.sum, string.format("Đã quét %d vật phẩm (%.1f giây)", #S.all, os.clock() - t0))
+		local cs = {}
+		for _, name in ipairs(ICATS) do
+			if counts[name] then table.insert(cs, name .. " " .. counts[name]) end
+		end
+		table.insert(S.sum, #cs > 0 and table.concat(cs, " · ") or "(không thấy vật phẩm nào)")
+		local root = getRoot()
+		if root then table.insert(S.sum, "Vị trí bạn lúc quét: " .. fmtV(root.Position)) end
+		if workspace.StreamingEnabled then
+			table.insert(S.sum, "⚠ Game bật StreamingEnabled: vật ở xa chưa tải sẽ chưa quét được")
+		end
+		if capped then
+			table.insert(S.sum, "⚠ Chạm giới hạn " .. ITEM_MAX .. " mục - tăng ITEM_MAX nếu cần quét hết")
+		end
+
+		S.scanned = true
+		S.page = 1
+		applyFilter()
+		render()
+		drawMarks()
+		addLog(S.sum[1], Enum.MessageType.MessageInfo)
+		setStatus("Quét xong: " .. #S.all .. " vật phẩm")
+	end
+
+	-- chép từng phần: mỗi lần tối đa ITEM_COPY_MAX ký tự, bấm "Sao Chép Phần Tiếp" để chép phần sau
+	local function copyChunk(reset)
+		local view = S.view
+		if not S.scanned then
+			setStatus("Hãy quét vật phẩm trước")
+			return
+		end
+		if #view == 0 then
+			setStatus("Không có kết quả khớp bộ lọc để chép")
+			return
+		end
+		if reset then S.copyNext = 1 end
+		local from = S.copyNext
+		if from > #view then
+			setStatus("Đã chép hết - bấm Sao Chép Kết Quả để chép lại từ đầu")
+			return
+		end
+		local lines, bytes = {}, 0
+		if from == 1 then
+			lines = headerLines()
+			for _, s in ipairs(lines) do bytes += #s + 1 end
+		end
+		local i = from
+		while i <= #view do
+			local ln = fullLine(i, view[i])
+			if bytes + #ln + 1 > ITEM_COPY_MAX and i > from then break end
+			table.insert(lines, ln)
+			bytes += #ln + 1
+			i += 1
+			if i % 1000 == 0 then task.wait() end
+		end
+		local last = i - 1
+		local msg = string.format("Đã chép #%d-#%d / %d%s", from, last, #view,
+			last < #view and " - bấm Sao Chép Phần Tiếp để chép tiếp" or " (hết)")
+		if copyText(table.concat(lines, "\n"), msg) then
+			S.copyNext = last + 1
+		end
+	end
+
+	-- giao diện: mỗi hàng một chức năng
+	actionRow(itemCard, 1, "🎒", "Quét Vật Phẩm", "Quét", runScan)
+
+	dropdown(itemCard, 2, "🔎", "Lọc Loại Vật Phẩm", ICATS, "Tất Cả", function(name)
+		S.cat = name
+		S.page = 1
+		refreshSoon()
+		setStatus("Lọc: " .. name)
+	end)
+
+	slider(itemCard, 3, "📏", "Bán Kính", 0, 2000, 0, function(v)
+		S.radius = v
+		S.page = 1
+		refreshSoon()
+	end)
+
+	itemLabel = textPanel(itemCard, 4)
+	itemLabel.Text = esc(ITEM_IDLE)
+
+	actionRow(itemCard, 5, "◀️", "Trang Trước", "◀", function()
+		local totalPages = math.max(1, math.ceil(#S.view / ITEM_PAGE))
+		S.page = S.page - 1
+		if S.page < 1 then S.page = totalPages end
+		render()
+	end)
+
+	actionRow(itemCard, 6, "▶️", "Trang Sau", "▶", function()
+		local totalPages = math.max(1, math.ceil(#S.view / ITEM_PAGE))
+		S.page = S.page + 1
+		if S.page > totalPages then S.page = 1 end
+		render()
+	end)
+
+	toggle(itemCard, 7, "🏷️", "Hiện Nhãn Vật Phẩm", false, "Cài Đặt")
+	Callbacks["Hiện Nhãn Vật Phẩm"] = function(on)
+		if on then drawMarks() else clearMarks() end
+	end
+
+	actionRow(itemCard, 8, "📋", "Sao Chép Kết Quả", "Chép", function()
+		copyChunk(true)
+	end)
+
+	actionRow(itemCard, 9, "⏭️", "Sao Chép Phần Tiếp", "Tiếp", function()
+		copyChunk(false)
+	end)
+
+	actionRow(itemCard, 10, "💾", "Lưu File .txt", "Lưu", function()
+		if not S.scanned then
+			setStatus("Hãy quét vật phẩm trước")
+			return
+		end
+		local fname = "VuDong_ItemScan_" .. tostring(game.PlaceId) .. ".txt"
+		if pcall(writefile, fname, buildReport()) then
+			setStatus("Đã lưu " .. #S.view .. " dòng vào file " .. fname)
+			addLog("Đã lưu quét vật phẩm: " .. fname, Enum.MessageType.MessageInfo)
+		else
+			setStatus("Executor không hỗ trợ writefile - dùng nút Sao Chép")
+		end
+	end)
+
+	actionRow(itemCard, 11, "🎯", "Chép Vật Phẩm Gần Nhất", "Chép", function()
+		local e = S.view[1]
+		if not e then
+			setStatus("Chưa có kết quả - hãy quét vật phẩm trước")
+			return
+		end
+		copyText(fullLine(1, e), "Đã sao chép vật phẩm gần nhất: " .. e.name)
+	end)
+
+	actionRow(itemCard, 12, "🖨️", "In Ra Console", "In", function()
+		if #S.view == 0 then
+			setStatus("Chưa có kết quả - hãy quét vật phẩm trước")
+			return
+		end
+		local n = math.min(#S.view, 300)
+		print("=== Vu Dong Script - Quét Vật Phẩm: " .. #S.view .. " kết quả (in " .. n .. " dòng đầu) ===")
+		for i = 1, n do print(fullLine(i, S.view[i])) end
+		setStatus("Đã in " .. n .. " dòng ra console")
+	end)
+
+	actionRow(itemCard, 13, "🧹", "Xóa Kết Quả Quét", "Xóa", function()
+		table.clear(S.all)
+		table.clear(S.view)
+		table.clear(S.sum)
+		S.scanned = false
+		S.copyNext = 1
+		clearMarks()
+		S.page = 1
+		render()
+		setStatus("Đã xóa kết quả quét vật phẩm")
+	end)
+end -- hết khối Quét Vật Phẩm
+
+-- Tab: Thông Tin
+local homePage = newPage("Thông Tin")
+
+local function rightLabel(r, text)
+	local l = label(r, {
+		Text = text or "", TextSize = 27, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Right,
+		AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -32, 0.5, 0), Size = UDim2.fromOffset(340, ROW_H),
+	})
+	themed(function() l.TextColor3 = theme.accent2 end)
+	return l
+end
+
+-- Thẻ Thông Tin (trang Thông Tin)
+local infoCard = card(homePage, 1, "ℹ️", "Thông Tin", "Script được phát triển bởi Vu Dong", Color3.fromRGB(59, 155, 255))
+-- Danh sách phần tử đổi màu 7 sắc nhấp nháy (chạy ở cuối phần Thông Tin)
+local blinkTargets = {}
+local function blink(inst, prop)
+	table.insert(blinkTargets, { inst, prop })
+end
+do
+	local cardStroke = infoCard:FindFirstChildOfClass("UIStroke")
+	if cardStroke then blink(cardStroke, "Color") end
+	for _, d in ipairs(infoCard:GetDescendants()) do
+		if d:IsA("TextLabel") and d.Text == "Thông Tin" then blink(d, "TextColor3") end
+	end
+end
+local box = new("Frame", {
+	BackgroundColor3 = Color3.fromRGB(8, 18, 48), LayoutOrder = 1,
+	Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
+}, infoCard)
+corner(box, 26)
+local boxStroke = stroke(box, theme.accent, 3, 0.2)
+themed(function() boxStroke.Color = theme.accent end)
+blink(boxStroke, "Color")
+pad(box, 28, 28, 28, 28)
+list(box, 12)
+blink(label(box, { Text = "👑  Vu Dong Script", TextSize = 30, Font = F_BOLD, LayoutOrder = 0, Size = UDim2.new(1, 0, 0, 108) }), "TextColor3")
+for i, t in ipairs({ "Hoàn toàn miễn phí", "Không cần Key", "An toàn - Ổn định", "Cập nhật thường xuyên" }) do
+	blink(label(box, { Text = "✅  " .. t, TextSize = 25, TextColor3 = Color3.fromRGB(205, 217, 245), LayoutOrder = i, Size = UDim2.new(1, 0, 0, 90) }), "TextColor3")
+end
+-- mở kênh Telegram: thử mở trình duyệt + sao chép link (tùy môi trường chạy),
+-- nếu không được thì vẫn hiện link trên thanh trạng thái để người chơi tự vào
+local function openChannel()
+	local copied = pcall(setclipboard, TELEGRAM_URL)
+	pcall(function() GuiService:OpenBrowserWindow(TELEGRAM_URL) end)
+	if copied then
+		setStatus("Đã sao chép link kênh: " .. TELEGRAM_SHORT)
+	else
+		setStatus("Kênh Telegram: " .. TELEGRAM_SHORT)
+	end
+end
+
+local tgRow = row(box, 5, "✈", "Telegram: " .. TELEGRAM_SHORT, 220)
+blink(rightLabel(tgRow, "Mở  ›"), "TextColor3")
+new("TextButton", { Text = "", BackgroundTransparency = 1, ZIndex = 5, Size = UDim2.fromScale(1, 1) }, tgRow)
+	.Activated:Connect(openChannel)
+
+-- TikTok
+local function openTikTok()
+	local copied = pcall(setclipboard, TIKTOK_URL)
+	pcall(function() GuiService:OpenBrowserWindow(TIKTOK_URL) end)
+	if copied then
+		setStatus("Đã sao chép link TikTok: " .. TIKTOK_SHORT)
+	else
+		setStatus("TikTok: " .. TIKTOK_SHORT)
+	end
+end
+
+local ttRow = row(box, 6, "🎵", TIKTOK_SHORT, 220)
+blink(rightLabel(ttRow, "Mở  ›"), "TextColor3")
+new("TextButton", { Text = "", BackgroundTransparency = 1, ZIndex = 5, Size = UDim2.fromScale(1, 1) }, ttRow)
+	.Activated:Connect(openTikTok)
+
+-- Ủng hộ: bấm để sao chép số tài khoản
+blink(label(box, { Text = "💖  Ủng hộ mình nhé!", TextSize = 25, Font = F_BOLD, TextColor3 = Color3.fromRGB(205, 217, 245), LayoutOrder = 7, Size = UDim2.new(1, 0, 0, 90) }), "TextColor3")
+
+local bankRow = row(box, 8, "🏦", BANK_NAME .. " " .. BANK_NUMBER, 220)
+blink(rightLabel(bankRow, "Chép  ›"), "TextColor3")
+new("TextButton", { Text = "", BackgroundTransparency = 1, ZIndex = 5, Size = UDim2.fromScale(1, 1) }, bankRow)
+	.Activated:Connect(function()
+		local copied = pcall(setclipboard, BANK_NUMBER)
+		if copied then
+			setStatus("Đã sao chép STK " .. BANK_NAME .. ": " .. BANK_NUMBER)
+		else
+			setStatus("STK " .. BANK_NAME .. ": " .. BANK_NUMBER)
+		end
+	end)
+
+local cta = new("TextButton", {
+	Text = "✈  Ủng hộ kênh để có thêm script hay nhé!", TextSize = ts(23), Font = F_BOLD, TextColor3 = Color3.new(1, 1, 1),
+	TextWrapped = true, LayoutOrder = 9, Size = UDim2.new(1, 0, 0, 150),
+}, box)
+corner(cta, 75)
+themed(function() cta.BackgroundColor3 = theme.accent end) -- màu ban đầu, sau đó nhấp nháy ghi đè
+cta.TextStrokeTransparency = 0.35 -- viền chữ đen để dễ đọc trên cả màu vàng
+blink(cta, "BackgroundColor3")
+cta.Activated:Connect(function()
+	openChannel()
+	local cb = Callbacks["Support"]
+	if cb then task.spawn(cb) end
+end)
+
+-- 7 màu nhấp nháy trong trang Thông Tin (đỏ, cam, vàng, lục, lam, chàm, tím)
+-- Mỗi phần tử lệch nhau 1 màu nên tạo hiệu ứng cầu vồng chạy. Chỉ chạy khi đang xem trang này.
+local BLINK_COLORS = {
+	Color3.fromRGB(255, 59, 48),  -- đỏ
+	Color3.fromRGB(255, 149, 0),  -- cam
+	Color3.fromRGB(255, 230, 0),  -- vàng
+	Color3.fromRGB(52, 230, 90),  -- lục
+	Color3.fromRGB(0, 220, 255),  -- lam
+	Color3.fromRGB(41, 98, 255),  -- chàm
+	Color3.fromRGB(190, 80, 255), -- tím
+}
+local BLINK_STEP = 0.35 -- giây giữa mỗi lần đổi màu (nhỏ hơn = nháy nhanh hơn)
+task.spawn(function()
+	local step = 0
+	while infoCard.Parent do
+		if main.Visible and homePage.Visible then
+			step += 1
+			for i, t in ipairs(blinkTargets) do
+				local inst, prop = t[1], t[2]
+				if inst.Parent then
+					TweenService:Create(inst, TweenInfo.new(BLINK_STEP * 0.6), { [prop] = BLINK_COLORS[(step + i) % #BLINK_COLORS + 1] }):Play()
+				end
+			end
+		end
+		task.wait(BLINK_STEP)
+	end
+end)
+
+----------------------------------------------------------------
+-- TAB FOREST: Tự Động Chặt Cây
+-- Tab "Forest" (tên khu vực trong game) có công tắc "Tự Động Chặt Cây":
+--   1. Dịch chuyển tới tọa độ khu vực FOREST_POS (nếu đang đứng xa hơn FOREST_RADIUS).
+--   2. Quét các vật tên giống cây (TREE_KEYWORDS) trong bán kính FOREST_RADIUS quanh FOREST_POS.
+--   3. Cầm rìu (Tool có tên chứa AXE_KEYWORDS), dịch chuyển sát cây gần nhất, quay mặt vào cây rồi chặt
+--      (Tool:Activate, thêm ProximityPrompt / ClickDetector của cây nếu có và executor hỗ trợ).
+--   4. Cây ĐỔ thì dịch chuyển ngay sang cây gần nhất kế tiếp (không chờ cây biến mất). Nhận diện cây đổ bằng:
+--        - Thanh HP: máu về 0 (Humanoid / thuộc tính Health, HP / giá trị NumberValue tên HP, Health /
+--          thanh máu trong BillboardGui hoặc SurfaceGui của cây: thanh Fill hoặc chữ "30/100", "45%"),
+--          hoặc thanh HP đã hiện rồi biến mất.
+--        - Trứng: có vật tên chứa EGG_KEYWORDS xuất hiện trong workspace gần cây (hoặc gần nhân vật).
+--        - Cây đổ nghiêng: cây bị nghiêng quá ~45 độ so với lúc bắt đầu chặt.
+--        - Cây biến mất khỏi workspace.
+--      Bật / tắt từng cách ở DETECT_HP / DETECT_EGG / DETECT_TILT. Lý do cây đổ hiện ở thanh trạng thái.
+--   5. Cây đã đổ được bỏ qua DONE_TIME giây (chờ mọc lại). Cây nào chặt quá MAX_PER_TREE giây mà không
+--      nhận ra là đã đổ thì bị bỏ qua SKIP_TIME giây (thanh trạng thái báo để bạn chỉnh từ khóa).
+-- Nếu game đặt tên cây / rìu / thanh máu / trứng khác, sửa các bảng từ khóa bên dưới
+-- (dùng Cài Đặt → Quét Map để xem tên thật trong map).
+-- Đặt trong task.spawn để KHÔNG thêm biến local ở cấp ngoài cùng (Luau giới hạn 200, file này đã gần chạm mức đó).
+----------------------------------------------------------------
+task.spawn(function()
+	local FOREST_POS = Vector3.new(-15.86, 3.22, -63.70) -- tọa độ khu vực Forest
+	local FOREST_RADIUS = 150 -- chỉ chặt cây nằm trong bán kính này quanh FOREST_POS
+	local TREE_KEYWORDS = { "tree", "cây", "oak", "pine", "birch", "wood", "log", "trunk" } -- tên vật chứa chữ này được coi là cây (không phân biệt hoa thường)
+	local AXE_KEYWORDS = { "axe", "rìu", "hatchet" } -- tên Tool chứa chữ này được coi là rìu
+	local HP_KEYWORDS = { "hp", "health", "máu" } -- tên thuộc tính / giá trị máu của cây (chứa "max" thì là máu tối đa)
+	local BAR_KEYWORDS = { "fill", "bar", "hp", "health", "máu" } -- tên thanh máu (Frame) bên trong BillboardGui / SurfaceGui của cây
+	local EGG_KEYWORDS = { "egg", "trứng" } -- tên vật được coi là trứng
+	local EGG_RADIUS = 30 -- trứng xuất hiện cách cây (hoặc nhân vật) trong bán kính này thì coi là cây đã đổ
+	local EGG_GRACE = 3 -- giây: trứng của cây trước rơi trễ gần cây trước thì không tính cho cây sau
+	local DETECT_HP = true -- nhận diện cây đổ bằng thanh HP
+	local DETECT_EGG = true -- nhận diện cây đổ khi trứng xuất hiện
+	local DETECT_TILT = true -- nhận diện cây đổ khi cây bị nghiêng
+	local CHOP_DELAY = 0.25 -- giây giữa hai nhát chặt
+	local CHOP_REACH = 6 -- đứng cách tâm cây bao nhiêu stud
+	local MAX_PER_TREE = 10 -- chặt một cây quá số giây này mà chưa nhận ra là đổ thì bỏ qua
+	local SKIP_TIME = 30 -- giây bỏ qua cây chặt không được
+	local DONE_TIME = 30 -- giây bỏ qua cây đã đổ (chờ cây mọc lại)
+	local RESCAN_WAIT = 3 -- giây chờ rồi quét lại khi không còn cây nào
+	local TOGGLE_NAME = "Tự Động Chặt Cây"
+	local AUTUMN_POS = Vector3.new(-5.18, 3.22, -186.00) -- tọa độ khu vực Autumn
+	local AUTUMN_RADIUS = 100 -- chỉ chặt cây Autumn nằm trong bán kính này quanh AUTUMN_POS
+	local AUTUMN_TOGGLE = "Tự Động Chặt Cây Autumn"
+	local SAKURA_POS = Vector3.new(-1.23, 3.22, -395.77) -- tọa độ khu vực Sakura
+	local SAKURA_RADIUS = 100 -- chỉ chặt cây Sakura nằm trong bán kính này quanh SAKURA_POS
+	local SAKURA_TOGGLE = "Tự Động Chặt Cây Sakura"
+	local SNOW_POS = Vector3.new(-3.08, 3.22, -688.73) -- tọa độ khu vực Snow
+	local SNOW_RADIUS = 100 -- chỉ chặt cây Snow nằm trong bán kính này quanh SNOW_POS
+	local SNOW_TOGGLE = "Tự Động Chặt Cây Snow"
+	local DESERT_POS = Vector3.new(-8.64, 3.22, -1073.28) -- tọa độ khu vực Desert
+	local DESERT_RADIUS = 100 -- chỉ chặt cây Desert nằm trong bán kính này quanh DESERT_POS
+	local DESERT_TOGGLE = "Tự Động Chặt Cây Desert"
+	local WATER_POS = Vector3.new(-4.91, 3.22, -1540.81) -- tọa độ khu vực Water
+	local WATER_RADIUS = 100 -- chỉ chặt cây Water nằm trong bán kính này quanh WATER_POS
+	local WATER_TOGGLE = "Tự Động Chặt Cây Water"
+	local VULCANO_POS = Vector3.new(6.63, 3.22, -2048.78) -- tọa độ khu vực Vulcano
+	local VULCANO_RADIUS = 100 -- chỉ chặt cây Vulcano nằm trong bán kính này quanh VULCANO_POS
+	local VULCANO_TOGGLE = "Tự Động Chặt Cây Vulcano"
+	local CELESTIAL_POS = Vector3.new(-9.54, 3.22, -2697.90) -- tọa độ khu vực Celestial
+	local CELESTIAL_RADIUS = 100 -- chỉ chặt cây Celestial nằm trong bán kính này quanh CELESTIAL_POS
+	local CELESTIAL_TOGGLE = "Tự Động Chặt Cây Celestial"
+	local VOID_POS = Vector3.new(-3.63, 3.22, -3483.02) -- tọa độ khu vực Void
+	local VOID_RADIUS = 100 -- chỉ chặt cây Void nằm trong bán kính này quanh VOID_POS
+	local VOID_TOGGLE = "Tự Động Chặt Cây Void"
+	local GRAVEYARD_POS = Vector3.new(2.70, 3.22, -4219.51) -- tọa độ khu vực Nghĩa Trang Ma Ám
+	local GRAVEYARD_RADIUS = 100 -- chỉ chặt cây Nghĩa Trang Ma Ám nằm trong bán kính này quanh GRAVEYARD_POS
+	local GRAVEYARD_TOGGLE = "Tự Động Chặt Cây Nghĩa Trang Ma Ám"
+	local ZONE_SPLIT = true -- cây gần tâm khu nào hơn thì chỉ khu đó chặt (đặt false nếu hai khu bị cắt mất cây)
+	local EGG_PICK_TOGGLE = "Tự Động Nhặt Egg"
+	local EGG_PICK_RADIUS = 150 -- chỉ nhặt trứng nằm trong bán kính này quanh CHỖ PLAYER ĐANG ĐỨNG lúc bật công tắc (không cố định theo tọa độ)
+	local EGG_PICK_TIME = 4 -- giây tối đa cố nhặt một quả (hết giờ mà trứng vẫn còn thì bỏ qua)
+	local EGG_PICK_SKIP = 20 -- giây bỏ qua quả nhặt không được
+	local EGG_PICK_WAIT = 0.5 -- giây chờ rồi quét lại khi không còn trứng
+	local EGG_FINISH_WHEN_EMPTY = true -- hết trứng quanh đây (đã nhặt ít nhất 1 quả) thì dịch chuyển về mảnh đất rồi TỰ TẮT, không quay lại nhặt nữa
+	local EGG_EMPTY_WAIT = 3 -- giây chờ không thấy trứng mới (trứng rơi trễ) rồi mới dịch chuyển về
+	local EGG_OWNER_CHECK = true -- bỏ qua trứng có chủ là người chơi khác (thuộc tính / giá trị Owner, UserId...)
+	local EGG_TARGET_DEFAULT = 10 -- số egg cần nhặt mặc định (chỉnh bằng thanh trượt trong menu; 0 = không giới hạn)
+	local EGG_HOME_POS = Vector3.new(7.97, 3.22, 64.89) -- tọa độ DỰ PHÒNG khi chưa lưu được vị trí mảnh đất; đổi thành nil thì dự phòng là chỗ đang đứng lúc bật công tắc
+	local EGG_FLY_SPEED = 360 -- tốc độ BAY về nhà (stud / giây, gấp 3 lần bản trước): tăng = bay nhanh hơn, giảm = bay chậm hơn
+	local EGG_FLY_MAX = 40 -- giây tối đa bay về nhà (quá giờ thì dừng bay, vẫn tự tắt công tắc)
+	local eggTarget = EGG_TARGET_DEFAULT -- số egg cần nhặt hiện tại
+	local eggCenter = nil -- tâm vùng nhặt egg = vị trí nhân vật lúc bật Nhặt Egg (tắt rồi bật lại ở chỗ khác thì đổi tâm)
+	local eggHome = nil -- CFrame dự phòng để dịch chuyển về khi nhặt đủ (chốt lúc bật Nhặt Egg)
+	local plotHome = nil -- CFrame mảnh đất của bạn trong server này (tự lưu khi vào server, hoặc bấm nút Lưu Vị Trí Này)
+	local plotLabel = nil -- nhãn hiện tọa độ mảnh đất trên menu
+	local PLOT_SETTLE_MAX = 15 -- giây tối đa chờ nhân vật đáp xuống đất và đứng yên trước khi tự lưu
+	local PLOT_SAVE_DELAY = 2 -- giây chờ thêm sau khi đứng yên (cho game kịp đặt nhân vật vào mảnh đất)
+
+	-- giao diện: tab Forest
+	local forestPage = newPage("Forest")
+	local forestCard = card(forestPage, 1, "🌲", 'Forest <font size="' .. SMALL .. '">(10 Khu Chặt Cây)</font>',
+		"Chặt cây 10 khu, từ Forest đến Nghĩa Trang Ma Ám", Color3.fromRGB(34, 197, 94))
+	rainbowCard(forestCard)
+	-- LƯỚI 2 CỘT: các công tắc chặt cây xếp 2 cái / hàng (5 hàng cho 10 khu) thay vì 10 hàng dọc
+	local forestGrid = new("Frame", {
+		BackgroundTransparency = 1, LayoutOrder = 1, Size = UDim2.new(1, 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y,
+	}, forestCard)
+	new("UIGridLayout", {
+		CellSize = UDim2.new(0.5, -12, 0, ROW_H), CellPadding = UDim2.fromOffset(20, 20),
+		FillDirectionMaxCells = 2, SortOrder = Enum.SortOrder.LayoutOrder,
+	}, forestGrid)
+	local GRID_TEXT = 22 -- cỡ chữ tên khu trong ô lưới (ô hẹp hơn nên chữ nhỏ hơn hàng thường 28)
+	toggle(forestGrid, 1, "🌳", TOGGLE_NAME, false, "Forest", "Forest", GRID_TEXT)
+	local eggCard = card(forestPage, 2, "🥚", 'Nhặt Egg <font size="' .. SMALL .. '">(Quanh Chỗ Đứng)</font>',
+		"Đủ số lượng / hết trứng thì về mảnh đất, không quay lại", Color3.fromRGB(250, 204, 21))
+	rainbowCard(eggCard)
+	toggle(eggCard, 1, "🥚", EGG_PICK_TOGGLE, false, "Forest")
+	-- LƯU Ý hiện ngay dưới công tắc Nhặt Egg
+	textPanel(eggCard, 2).Text = '<font color="#FACC15"><b>⚠️ Lưu Ý Tự Động Nhặt Egg</b></font>\nChặt Ở Đâu Bật Ở Đó Để Nhặt'
+	slider(eggCard, 3, "🔢", "Số Egg Cần Nhặt", 0, 200, EGG_TARGET_DEFAULT, function(v)
+		eggTarget = v
+		setStatus(v == 0 and "Số egg cần nhặt: không giới hạn" or ("Số egg cần nhặt: " .. v))
+	end)
+
+	----------------------------------------------------------------
+	-- Vị trí mảnh đất: TỰ LƯU khi vào server (lúc script chạy: chờ nhân vật đáp xuống đất, đứng yên rồi lưu chỗ đang đứng).
+	-- Nhặt Egg đủ số lượng thì dịch chuyển về vị trí này. Bấm "Lưu Vị Trí Này" để lưu lại thủ công (đứng trên mảnh đất rồi bấm).
+	-- Nếu chạy lại script trong CÙNG server thì khôi phục vị trí đã lưu (không lưu đè chỗ đang đứng); sang server khác thì lưu mới.
+	----------------------------------------------------------------
+	local PLOT_LABEL_TEXT = "Mảnh Đất: đang lưu..."
+	local function stash()
+		local ok, env = pcall(function() return getgenv() end)
+		return ok and type(env) == "table" and env or nil
+	end
+
+	local function savePlot(cf, how)
+		plotHome = cf
+		local p = cf.Position
+		local txt = string.format("%.2f, %.2f, %.2f", p.X, p.Y, p.Z)
+		if plotLabel then plotLabel.Text = "Mảnh Đất: " .. txt end
+		setStatus("Đã lưu vị trí mảnh đất: " .. txt)
+		print("[Mảnh Đất] " .. how .. ": " .. txt)
+		local env = stash()
+		if env then env.VuDongPlotHome = { job = game.JobId, cf = cf } end
+	end
+
+	local plotBtn = actionRow(eggCard, 4, "📍", PLOT_LABEL_TEXT, "Lưu Vị Trí Này", function()
+		local c = player.Character
+		local r = c and c:FindFirstChild("HumanoidRootPart")
+		if r then
+			savePlot(r.CFrame, "lưu thủ công")
+		else
+			setStatus("Chưa có nhân vật để lưu vị trí")
+		end
+	end)
+	for _, ch in ipairs(plotBtn.Parent:GetChildren()) do
+		if ch:IsA("TextLabel") and ch.Text == PLOT_LABEL_TEXT then plotLabel = ch end
+	end
+
+	task.spawn(function()
+		local env = stash()
+		local saved = env and env.VuDongPlotHome
+		if type(saved) == "table" and saved.job == game.JobId and typeof(saved.cf) == "CFrame" then
+			savePlot(saved.cf, "khôi phục (đã lưu trước đó trong server này)")
+			return
+		end
+		local char = player.Character or player.CharacterAdded:Wait()
+		local root = char:WaitForChild("HumanoidRootPart", 30)
+		local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 30)
+		if not (root and hum) then
+			if plotLabel then plotLabel.Text = "Mảnh Đất: chưa lưu được" end
+			return
+		end
+		local t0 = os.clock()
+		while os.clock() - t0 < PLOT_SETTLE_MAX and not plotHome do
+			if hum.FloorMaterial ~= Enum.Material.Air and root.AssemblyLinearVelocity.Magnitude < 2 then break end
+			task.wait(0.25)
+		end
+		task.wait(PLOT_SAVE_DELAY)
+		if plotHome then return end -- bạn đã bấm lưu tay trong lúc chờ
+		local c = player.Character
+		local r = c and c:FindFirstChild("HumanoidRootPart")
+		if r then
+			savePlot(r.CFrame, "tự lưu khi vào server")
+		elseif plotLabel then
+			plotLabel.Text = "Mảnh Đất: chưa lưu được"
+		end
+	end)
+
+	-- giao diện: các khu chặt cây còn lại (Autumn...) là các ô tiếp theo của lưới 2 cột trong thẻ Forest (cùng tab Forest, không có tab / thẻ riêng)
+	toggle(forestGrid, 2, "🍁", AUTUMN_TOGGLE, false, "Forest", "Autumn", GRID_TEXT)
+	toggle(forestGrid, 3, "🌸", SAKURA_TOGGLE, false, "Forest", "Sakura", GRID_TEXT) -- Sakura: ô thứ 3 của lưới 2 cột trong thẻ Forest
+	toggle(forestGrid, 4, "❄️", SNOW_TOGGLE, false, "Forest", "Snow", GRID_TEXT) -- Snow: ô thứ 4 của lưới 2 cột trong thẻ Forest
+	toggle(forestGrid, 5, "🏜️", DESERT_TOGGLE, false, "Forest", "Desert", GRID_TEXT) -- Desert: ô thứ 5 của lưới 2 cột trong thẻ Forest
+	toggle(forestGrid, 6, "🌊", WATER_TOGGLE, false, "Forest", "Water", GRID_TEXT) -- Water: ô thứ 6 của lưới 2 cột trong thẻ Forest
+	toggle(forestGrid, 7, "🌋", VULCANO_TOGGLE, false, "Forest", "Vulcano", GRID_TEXT) -- Vulcano: ô thứ 7 của lưới 2 cột trong thẻ Forest
+	toggle(forestGrid, 8, "✨", CELESTIAL_TOGGLE, false, "Forest", "Celestial", GRID_TEXT) -- Celestial: ô thứ 8 của lưới 2 cột trong thẻ Forest
+	toggle(forestGrid, 9, "🌌", VOID_TOGGLE, false, "Forest", "Void", GRID_TEXT) -- Void: ô thứ 9 của lưới 2 cột trong thẻ Forest
+	toggle(forestGrid, 10, "👻", GRAVEYARD_TOGGLE, false, "Forest", "Nghĩa Trang", GRID_TEXT) -- Nghĩa Trang Ma Ám: ô thứ 10 của lưới 2 cột trong thẻ Forest
+
+	-- logic chặt cây (dùng chung cho Forest, Autumn, Sakura, Snow, Desert, Water, Vulcano, Celestial, Void và Nghĩa Trang Ma Ám qua makeChopper)
+	local eggBusy = false -- true khi "Tự Động Nhặt Egg" đang đi nhặt: chặt cây tạm dừng để không giành nhân vật
+
+	local function matchAny(name, words)
+		name = string.lower(name)
+		for _, w in ipairs(words) do
+			if string.find(name, w, 1, true) then return true end
+		end
+		return false
+	end
+
+	local function posOf(inst)
+		if inst:IsA("Model") then
+			return inst:GetPivot().Position
+		elseif inst:IsA("BasePart") then
+			return inst.Position
+		end
+		return nil
+	end
+
+	-- độ thẳng đứng của cây: 1 = thẳng, 0 = nằm ngang
+	local function upY(inst)
+		if inst:IsA("Model") then
+			return inst:GetPivot().UpVector.Y
+		elseif inst:IsA("BasePart") then
+			return inst.CFrame.UpVector.Y
+		end
+		return 1
+	end
+
+	-- vật nằm trong một nhân vật (người chơi / NPC có Humanoid) thì không phải cây
+	local function inCharacter(inst)
+		local a = inst
+		while a and a ~= workspace do
+			if a:IsA("Model") and a:FindFirstChildOfClass("Humanoid") then return true end
+			a = a.Parent
+		end
+		return false
+	end
+
+	-- Các chức năng làm nhân vật tự di chuyển / dịch chuyển (chặt cây Forest, Autumn, Sakura, Snow, Desert, Water, Vulcano, Celestial, Void, Nghĩa Trang Ma Ám, nhặt egg) chỉ chạy MỘT cái một lúc:
+	-- bật cái nào thì các cái còn lại tự tắt.
+	local EXCLUSIVE_TOGGLES = { TOGGLE_NAME, AUTUMN_TOGGLE, SAKURA_TOGGLE, SNOW_TOGGLE, DESERT_TOGGLE, WATER_TOGGLE, VULCANO_TOGGLE, CELESTIAL_TOGGLE, VOID_TOGGLE, GRAVEYARD_TOGGLE, EGG_PICK_TOGGLE }
+	local function exclusive(me)
+		if not State.__set then return end
+		for _, n in ipairs(EXCLUSIVE_TOGGLES) do
+			if n ~= me and State[n] and State.__set[n] then State.__set[n](false) end
+		end
+	end
+	local ZONE_CENTERS = { FOREST_POS, AUTUMN_POS, SAKURA_POS, SNOW_POS, DESERT_POS, WATER_POS, VULCANO_POS, CELESTIAL_POS, VOID_POS, GRAVEYARD_POS } -- tâm các khu chặt cây (chia vùng theo tâm gần nhất)
+
+	local function makeChopper(ZONE_NAME, ZONE_POS, ZONE_RADIUS, ZONE_TOGGLE)
+		-- cây thuộc khu này: trong bán kính ZONE_RADIUS và gần tâm khu này hơn tâm các khu khác (để hai khu không chặt nhầm cây của nhau)
+		local function inMyZone(p)
+			if (p - ZONE_POS).Magnitude > ZONE_RADIUS then return false end
+			if ZONE_SPLIT then
+				local mine = (p - ZONE_POS).Magnitude
+				for _, c in ipairs(ZONE_CENTERS) do
+					if c ~= ZONE_POS and (p - c).Magnitude < mine then return false end
+				end
+			end
+			return true
+		end
+
+		local runId = 0 -- mỗi lần bật / tắt tăng 1, vòng lặp cũ thấy khác số thì tự dừng
+		local skip = setmetatable({}, { __mode = "k" }) -- cây -> thời điểm hết hạn bỏ qua
+		local lastMsg = nil
+		local eggs, eggConn = {}, nil -- trứng mới xuất hiện: { inst, t }
+		local prevPos, prevAt = nil, 0 -- vị trí / thời điểm cây vừa chặt xong (để không nhầm trứng rơi trễ của cây trước)
+
+		local function say(key, text)
+			if lastMsg ~= key then
+				lastMsg = key
+				setStatus(text)
+			end
+		end
+
+		-- trả về danh sách cây (vật ngoài cùng, không lấy từng mảnh con) thuộc khu này
+		local function scanTrees()
+			local set, found = {}, {}
+			for _, d in ipairs(workspace:GetDescendants()) do
+				if (d:IsA("Model") or d:IsA("BasePart")) and matchAny(d.Name, TREE_KEYWORDS) and not inCharacter(d) then
+					local p = posOf(d)
+					if p and inMyZone(p) then
+						set[d] = true
+						table.insert(found, d)
+					end
+				end
+			end
+			local now = os.clock()
+			local out = {}
+			for _, d in ipairs(found) do
+				local nested = false
+				local a = d.Parent
+				while a and a ~= workspace do
+					if set[a] then nested = true break end
+					a = a.Parent
+				end
+				local expire = skip[d]
+				if not nested and not (expire and now < expire) then
+					table.insert(out, d)
+				end
+			end
+			return out
+		end
+
+		-- tìm rìu: đang cầm thì dùng luôn, trong Túi Đồ thì cầm lên; không có rìu thì dùng Tool đang cầm (nếu có)
+		local function findAxe(char, hum)
+			for _, t in ipairs(char:GetChildren()) do
+				if t:IsA("Tool") and matchAny(t.Name, AXE_KEYWORDS) then return t end
+			end
+			local bp = player:FindFirstChildOfClass("Backpack")
+			if bp then
+				for _, t in ipairs(bp:GetChildren()) do
+					if t:IsA("Tool") and matchAny(t.Name, AXE_KEYWORDS) then
+						pcall(function() hum:EquipTool(t) end)
+						return t
+					end
+				end
+			end
+			return char:FindFirstChildOfClass("Tool")
+		end
+
+		-- đọc máu từ một thanh HP (BillboardGui / SurfaceGui): chữ "30/100", "45%" hoặc độ dài thanh Fill. Trả về cur, max
+		local function guiHp(gui)
+			local fill, fillScore
+			for _, g in ipairs(gui:GetDescendants()) do
+				if g:IsA("TextLabel") or g:IsA("TextButton") then
+					local c, m = string.match(g.Text, "(%d+%.?%d*)%s*/%s*(%d+%.?%d*)")
+					if c then return tonumber(c), tonumber(m) end
+					local pct = string.match(g.Text, "(%d+%.?%d*)%s*%%")
+					if pct then return tonumber(pct), 100 end
+				elseif g:IsA("GuiObject") and matchAny(g.Name, BAR_KEYWORDS) then
+					local n = string.lower(g.Name)
+					local score = 1
+					if string.find(n, "fill", 1, true) then
+						score = 3
+					elseif string.find(n, "hp", 1, true) or string.find(n, "health", 1, true) or string.find(n, "máu", 1, true) then
+						score = 2
+					end
+					if not fillScore or score > fillScore then fill, fillScore = g, score end
+				end
+			end
+			if fill then
+				local s = fill.Size.X.Scale
+				if s == 0 and fill.Size.X.Offset > 0 and fill.Parent and fill.Parent:IsA("GuiObject") and fill.Parent.AbsoluteSize.X > 0 then
+					s = fill.AbsoluteSize.X / fill.Parent.AbsoluteSize.X
+				end
+				return s, 1
+			end
+			return nil
+		end
+
+		-- đọc máu của cây. Trả về cur, max, nguồn, gui (gui chỉ có khi đọc từ thanh HP, để theo dõi "thanh HP biến mất")
+		local function hpOf(tree)
+			local hum = tree:FindFirstChildWhichIsA("Humanoid", true)
+			if hum then return hum.Health, hum.MaxHealth, "Humanoid", nil end
+			local cur, mx
+			for k, v in pairs(tree:GetAttributes()) do
+				if type(v) == "number" and matchAny(k, HP_KEYWORDS) then
+					if string.find(string.lower(k), "max", 1, true) then mx = v else cur = v end
+				end
+			end
+			if cur then return cur, mx, "thuộc tính", nil end
+			local guis = {}
+			for _, d in ipairs(tree:GetDescendants()) do
+				if d:IsA("NumberValue") or d:IsA("IntValue") then
+					if matchAny(d.Name, HP_KEYWORDS) then
+						if string.find(string.lower(d.Name), "max", 1, true) then mx = d.Value else cur = d.Value end
+					end
+				elseif d:IsA("BillboardGui") or d:IsA("SurfaceGui") then
+					table.insert(guis, d)
+				end
+			end
+			if cur then return cur, mx, "giá trị", nil end
+			for _, g in ipairs(guis) do
+				local c, m = guiHp(g)
+				if c then return c, m, "thanh HP", g end
+			end
+			return nil
+		end
+
+		-- có trứng nào xuất hiện sau khi bắt đầu chặt cây này, gần cây hoặc gần nhân vật không
+		local function eggNear(st, tp, root)
+			local now = os.clock()
+			local keep, hit = {}, nil
+			for _, e in ipairs(eggs) do
+				if now - e.t < 60 then
+					table.insert(keep, e)
+					if not hit and e.t >= st.t0 and e.inst.Parent then
+						local p = posOf(e.inst)
+						if p and ((p - tp).Magnitude <= EGG_RADIUS or (p - root.Position).Magnitude <= EGG_RADIUS) then
+							local late = prevPos and e.t <= prevAt + EGG_GRACE and (p - prevPos).Magnitude <= EGG_RADIUS
+							if not late then hit = e.inst end
+						end
+					end
+				end
+			end
+			eggs = keep
+			return hit
+		end
+
+		-- cây đã đổ chưa? trả về lý do (chuỗi) hoặc nil nếu chưa
+		local function doneReason(tree, st, root, tp)
+			if not tree.Parent then return "cây biến mất" end
+			if DETECT_HP then
+				local cur, _, src, gui = hpOf(tree)
+				if gui then st.gui = gui end
+				if cur then
+					if cur > 0 then
+						st.hpPos = true
+					elseif st.hpPos or st.swings >= 4 then
+						return "HP = 0 (" .. src .. ")"
+					end
+				end
+				if st.gui and (not st.gui.Parent or st.gui.Enabled == false) then return "thanh HP biến mất" end
+			end
+			if DETECT_EGG then
+				local egg = eggNear(st, tp, root)
+				if egg then return "trứng xuất hiện: " .. egg.Name end
+			end
+			if DETECT_TILT and upY(tree) < st.up0 - 0.3 then return "cây đổ nghiêng" end
+			return nil
+		end
+
+		-- chặt một cây tới khi nó đổ (hoặc hết giờ). Xong thì cycle sẽ dịch chuyển sang cây khác.
+		local function chopTree(tree, my)
+			local st = { t0 = os.clock(), swings = 0, hpPos = false, gui = nil, up0 = upY(tree), lost = 0 }
+			local reason, lastTp = nil, posOf(tree)
+			say("chop " .. tree.Name, ZONE_NAME .. ": đang chặt " .. tree.Name)
+			while runId == my do
+				if eggBusy then -- đang nhặt trứng: chờ xong rồi chặt tiếp (thời gian chờ không tính vào MAX_PER_TREE)
+					local ps = os.clock()
+					while eggBusy and runId == my do task.wait(0.1) end
+					st.lost = st.lost + (os.clock() - ps)
+					if runId ~= my then break end
+				end
+				local char = player.Character
+				local hum = char and char:FindFirstChildOfClass("Humanoid")
+				local root = char and char:FindFirstChild("HumanoidRootPart")
+				if not (hum and root and hum.Health > 0) then return end
+				local tp = posOf(tree) or lastTp
+				lastTp = tp
+
+				reason = doneReason(tree, st, root, tp)
+				if reason then break end
+				if os.clock() - st.t0 - st.lost >= MAX_PER_TREE then
+					reason = false
+					break
+				end
+
+				-- dịch chuyển sát cây (cùng độ cao với nhân vật), quay mặt vào cây
+				local rp = root.Position
+				if (Vector3.new(rp.X, 0, rp.Z) - Vector3.new(tp.X, 0, tp.Z)).Magnitude > CHOP_REACH + 3 then
+					local dir = Vector3.new(rp.X - tp.X, 0, rp.Z - tp.Z)
+					if dir.Magnitude < 0.1 then dir = Vector3.new(0, 0, 1) end
+					local stand = tp + dir.Unit * CHOP_REACH
+					root.CFrame = CFrame.new(stand.X, rp.Y, stand.Z)
+					root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+				end
+				root.CFrame = CFrame.lookAt(root.Position, Vector3.new(tp.X, root.Position.Y, tp.Z))
+
+				-- cầm rìu và chặt
+				local tool = findAxe(char, hum)
+				if tool and tool.Parent == char then tool:Activate() end
+				local pp = tree:FindFirstChildWhichIsA("ProximityPrompt", true)
+				if pp and fireproximityprompt then pcall(fireproximityprompt, pp) end
+				local cd = tree:FindFirstChildWhichIsA("ClickDetector", true)
+				if cd and fireclickdetector then pcall(fireclickdetector, cd) end
+				st.swings = st.swings + 1
+
+				task.wait(CHOP_DELAY)
+			end
+			if runId ~= my then return end -- đã tắt công tắc giữa chừng
+			prevPos, prevAt = lastTp, os.clock()
+			if reason then
+				skip[tree] = os.clock() + DONE_TIME
+				setStatus(ZONE_NAME .. ": cây đổ (" .. reason .. ") - sang cây khác")
+			else
+				skip[tree] = os.clock() + SKIP_TIME
+				setStatus(ZONE_NAME .. ": bỏ qua " .. tree.Name .. " (chặt " .. MAX_PER_TREE .. "s chưa thấy đổ, kiểm tra từ khóa HP / trứng)")
+			end
+		end
+
+		local function cycle(my)
+			local char = player.Character
+			local hum = char and char:FindFirstChildOfClass("Humanoid")
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if not (hum and root and hum.Health > 0) then
+				task.wait(1)
+				return
+			end
+			if (root.Position - ZONE_POS).Magnitude > ZONE_RADIUS then
+				say("tp", ZONE_NAME .. ": đang dịch chuyển tới khu vực")
+				root.CFrame = CFrame.new(ZONE_POS)
+				root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+				task.wait(0.5)
+			end
+
+			local trees = scanTrees()
+			if #trees == 0 then
+				local now, waiting = os.clock(), false
+				for _, expire in pairs(skip) do
+					if expire > now then waiting = true break end
+				end
+				if waiting then
+					say("regrow", ZONE_NAME .. ": đã chặt hết cây, chờ cây mọc lại")
+				else
+					say("none", ZONE_NAME .. ": chưa thấy cây nào (kiểm tra TREE_KEYWORDS)")
+				end
+				task.wait(RESCAN_WAIT)
+				return
+			end
+			-- lần lượt chọn cây gần nhất so với vị trí hiện tại -> dịch chuyển sang đó chặt
+			while #trees > 0 and runId == my do
+				local c = player.Character
+				local r = c and c:FindFirstChild("HumanoidRootPart")
+				if not r then return end
+				local bi, bd = nil, nil
+				for i, t in ipairs(trees) do
+					local p = t.Parent and posOf(t)
+					if p then
+						local d = (p - r.Position).Magnitude
+						if not bd or d < bd then bi, bd = i, d end
+					end
+				end
+				if not bi then return end
+				chopTree(table.remove(trees, bi), my)
+			end
+		end
+
+		Callbacks[ZONE_TOGGLE] = function(on)
+			if on then exclusive(ZONE_TOGGLE) end -- loại trừ nhau với các chức năng di chuyển khác
+			runId = runId + 1
+			lastMsg = nil
+			if eggConn then
+				eggConn:Disconnect()
+				eggConn = nil
+			end
+			eggs = {}
+			if not on then return end
+			-- theo dõi trứng xuất hiện trong workspace
+			eggConn = workspace.DescendantAdded:Connect(function(d)
+				if (d:IsA("Model") or d:IsA("BasePart")) and matchAny(d.Name, EGG_KEYWORDS) then
+					table.insert(eggs, { inst = d, t = os.clock() })
+				end
+			end)
+			local my = runId
+			task.spawn(function()
+				while runId == my do
+					local ok, err = pcall(cycle, my)
+					if not ok then
+						warn("[" .. ZONE_NAME .. "] " .. tostring(err))
+						task.wait(1)
+					end
+					task.wait()
+				end
+			end)
+		end
+	end
+
+	makeChopper("Forest", FOREST_POS, FOREST_RADIUS, TOGGLE_NAME)
+	makeChopper("Autumn", AUTUMN_POS, AUTUMN_RADIUS, AUTUMN_TOGGLE)
+	makeChopper("Sakura", SAKURA_POS, SAKURA_RADIUS, SAKURA_TOGGLE)
+	makeChopper("Snow", SNOW_POS, SNOW_RADIUS, SNOW_TOGGLE)
+	makeChopper("Desert", DESERT_POS, DESERT_RADIUS, DESERT_TOGGLE)
+	makeChopper("Water", WATER_POS, WATER_RADIUS, WATER_TOGGLE)
+	makeChopper("Vulcano", VULCANO_POS, VULCANO_RADIUS, VULCANO_TOGGLE)
+	makeChopper("Celestial", CELESTIAL_POS, CELESTIAL_RADIUS, CELESTIAL_TOGGLE)
+	makeChopper("Void", VOID_POS, VOID_RADIUS, VOID_TOGGLE)
+	makeChopper("Nghĩa Trang Ma Ám", GRAVEYARD_POS, GRAVEYARD_RADIUS, GRAVEYARD_TOGGLE)
+
+
+	----------------------------------------------------------------
+	-- Tự Động Nhặt Egg (quanh chỗ Player đang đứng lúc bật)
+	-- Theo dõi mọi vật tên chứa EGG_KEYWORDS trong workspace (quét 1 lần khi bật, sau đó nghe DescendantAdded),
+	-- chọn quả gần nhất trong bán kính EGG_PICK_RADIUS quanh chỗ nhân vật đứng lúc bật (eggCenter) rồi dịch chuyển tới đứng lên quả đó
+	-- và kích hoạt: chạm (firetouchinterest), ProximityPrompt (fireproximityprompt), ClickDetector (fireclickdetector).
+	-- Quả biến mất khỏi workspace = đã nhặt. Quả nhặt không được thì bỏ qua EGG_PICK_SKIP giây.
+	----------------------------------------------------------------
+	local eggRun = 0 -- mỗi lần bật / tắt tăng 1, vòng lặp cũ thấy khác số thì tự dừng
+	local eggSet = setmetatable({}, { __mode = "k" }) -- các vật trông giống trứng đang có trong workspace
+	local eggSkip = setmetatable({}, { __mode = "k" }) -- trứng -> thời điểm hết hạn bỏ qua
+	local eggAddConn, eggRemConn = nil, nil
+	local eggTotal, lastEggMsg = 0, nil
+	local eggIdleSince = nil -- thời điểm bắt đầu không còn trứng (để chờ EGG_EMPTY_WAIT giây rồi về)
+
+	local function sayEgg(key, text)
+		if lastEggMsg ~= key then
+			lastEggMsg = key
+			setStatus(text)
+		end
+	end
+
+	-- trứng có chủ là người chơi khác không (thuộc tính / giá trị tên chứa owner, userid, player)
+	local function ownedByOther(inst)
+		local function check(o)
+			for k, v in pairs(o:GetAttributes()) do
+				local kl = string.lower(k)
+				local isOwnerKey = string.find(kl, "owner", 1, true) or string.find(kl, "userid", 1, true)
+				if type(v) == "number" and isOwnerKey and v ~= 0 and v ~= player.UserId then return true end
+				if type(v) == "string" and v ~= "" and (isOwnerKey or string.find(kl, "player", 1, true))
+					and v ~= player.Name and v ~= player.DisplayName and v ~= tostring(player.UserId) then
+					return true
+				end
+			end
+			for _, c in ipairs(o:GetChildren()) do
+				if string.find(string.lower(c.Name), "owner", 1, true) then
+					if c:IsA("ObjectValue") then
+						local v = c.Value
+						if v and v:IsA("Player") and v ~= player then return true end
+						if v and v:IsA("Model") and v:FindFirstChildOfClass("Humanoid") and v ~= player.Character then return true end
+					elseif c:IsA("StringValue") then
+						if c.Value ~= "" and c.Value ~= player.Name and c.Value ~= player.DisplayName and c.Value ~= tostring(player.UserId) then return true end
+					elseif c:IsA("IntValue") or c:IsA("NumberValue") then
+						if c.Value ~= 0 and c.Value ~= player.UserId then return true end
+					end
+				end
+			end
+			return false
+		end
+		if check(inst) then return true end
+		local par = inst.Parent
+		return par ~= nil and par ~= workspace and check(par)
+	end
+
+	-- kích hoạt nhặt một quả trứng: chạm + ProximityPrompt + ClickDetector
+	local function triggerEgg(egg, root)
+		local items, parts = { egg }, 0
+		for _, d in ipairs(egg:GetDescendants()) do table.insert(items, d) end
+		for _, d in ipairs(items) do
+			if d:IsA("ProximityPrompt") then
+				if fireproximityprompt then
+					pcall(function() d.HoldDuration = 0 end)
+					pcall(fireproximityprompt, d)
+				end
+			elseif d:IsA("ClickDetector") then
+				if fireclickdetector then pcall(fireclickdetector, d) end
+			elseif d:IsA("BasePart") and parts < 12 and firetouchinterest then
+				parts = parts + 1
+				pcall(firetouchinterest, root, d, 0)
+				pcall(firetouchinterest, root, d, 1)
+			end
+		end
+	end
+
+	local function eggGone(egg)
+		return not egg:IsDescendantOf(workspace) or inCharacter(egg)
+	end
+
+	-- nhặt một quả: true nếu nhặt được (quả biến mất), false nếu hết giờ / nhân vật chết
+	local function grabEgg(egg, my)
+		local t0 = os.clock()
+		while eggRun == my and os.clock() - t0 < EGG_PICK_TIME do
+			if eggGone(egg) then return true end
+			local char = player.Character
+			local hum = char and char:FindFirstChildOfClass("Humanoid")
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if not (hum and root and hum.Health > 0) then return false end
+			local p = posOf(egg)
+			if not p then return true end
+			root.CFrame = CFrame.new(p + Vector3.new(0, 2.5, 0))
+			root.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			triggerEgg(egg, root)
+			task.wait(0.2)
+		end
+		return eggGone(egg)
+	end
+
+	-- danh sách trứng hợp lệ (vật ngoài cùng, trong bán kính, không bị bỏ qua, không của người khác)
+	local function scanEggList()
+		local out, now = {}, os.clock()
+		for e in pairs(eggSet) do
+			local expire = eggSkip[e]
+			if e.Parent and e:IsDescendantOf(workspace) and not inCharacter(e) and not (expire and now < expire) then
+				local nested = false
+				local a = e.Parent
+				while a and a ~= workspace do
+					if eggSet[a] then nested = true break end
+					a = a.Parent
+				end
+				local p = posOf(e)
+				if not nested and p and eggCenter and (p - eggCenter).Magnitude <= EGG_PICK_RADIUS
+					and not (EGG_OWNER_CHECK and ownedByOther(e)) then
+					table.insert(out, e)
+				end
+			end
+		end
+		return out
+	end
+
+	-- bay về nhà (không dịch chuyển): mỗi khung hình đẩy nhân vật một đoạn về phía nhà, tắt va chạm khi bay để không kẹt tường
+	local function flyHome(home, my)
+		local c0 = player.Character
+		local saved = {}
+		if c0 then
+			for _, d in ipairs(c0:GetDescendants()) do
+				if d:IsA("BasePart") and d.CanCollide then
+					saved[#saved + 1] = d
+					d.CanCollide = false
+				end
+			end
+		end
+		local arrived = false
+		local t0 = os.clock()
+		while eggRun == my and os.clock() - t0 < EGG_FLY_MAX do
+			local dt = RunService.Heartbeat:Wait()
+			local c = player.Character
+			local r = c and c:FindFirstChild("HumanoidRootPart")
+			local hum = c and c:FindFirstChildOfClass("Humanoid")
+			if not (r and hum and hum.Health > 0) then break end
+			local delta = home.Position - r.Position
+			local dist = delta.Magnitude
+			if dist <= 0.5 then
+				r.CFrame = home
+				r.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+				arrived = true
+				break
+			end
+			local step = math.min(dist, EGG_FLY_SPEED * dt)
+			r.CFrame = CFrame.new(r.Position + delta.Unit * step) * (r.CFrame - r.CFrame.Position)
+			r.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			r.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+			sayEgg("fly", "Nhặt Egg: đang bay về nhà...")
+		end
+		for _, d in ipairs(saved) do -- trả lại va chạm
+			pcall(function() d.CanCollide = true end)
+		end
+		return arrived
+	end
+
+	-- nhặt đủ số lượng: BAY về nhà rồi tự tắt công tắc Nhặt Egg, KHÔNG quay lại chỗ nhặt nữa
+	local function finishEggs(reason)
+		eggBusy = false
+		eggRun = eggRun + 1 -- dừng hẳn vòng nhặt trước khi bay: không quay lại nhặt nữa
+		local my = eggRun
+		local n = eggTotal
+		local home = plotHome or eggHome -- ưu tiên vị trí mảnh đất đã lưu, không có thì dùng dự phòng
+		if home then
+			flyHome(home, my)
+		else
+			setStatus("Nhặt Egg: chưa có vị trí nhà để bay về (bấm \"Lưu Vị Trí Này\" khi đứng ở nhà)")
+		end
+		if eggRun ~= my then return end -- công tắc đã bị đổi trong lúc bay: không tắt đè
+		if State.__set and State.__set[EGG_PICK_TOGGLE] then State.__set[EGG_PICK_TOGGLE](false) end
+		setStatus("Nhặt Egg: " .. (reason or ("đã đủ " .. n .. " quả")) .. " - đã bay về nhà")
+	end
+
+	local function eggPass(my)
+		local char = player.Character
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		local root = char and char:FindFirstChild("HumanoidRootPart")
+		if not (hum and root and hum.Health > 0) then
+			task.wait(1)
+			return
+		end
+		if not eggCenter then eggCenter = root.Position end -- chưa có tâm (lúc bật chưa có nhân vật): lấy chỗ đang đứng
+		local list = scanEggList()
+		if #list == 0 then
+			if EGG_FINISH_WHEN_EMPTY and eggTotal > 0 then
+				eggIdleSince = eggIdleSince or os.clock()
+				if os.clock() - eggIdleSince >= EGG_EMPTY_WAIT then
+					finishEggs("hết trứng (đã nhặt " .. eggTotal .. " quả)")
+					return
+				end
+				sayEgg("idle", "Nhặt Egg: hết trứng, chờ " .. EGG_EMPTY_WAIT .. "s rồi dịch chuyển về")
+			else
+				sayEgg("none", "Nhặt Egg: chưa thấy trứng nào quanh chỗ đang đứng (bán kính " .. EGG_PICK_RADIUS .. ")")
+			end
+			task.wait(EGG_PICK_WAIT)
+			return
+		end
+		eggIdleSince = nil
+		eggBusy = true
+		while #list > 0 and eggRun == my do
+			local c = player.Character
+			local r = c and c:FindFirstChild("HumanoidRootPart")
+			if not r then break end
+			local bi, bd = nil, nil
+			for i, e in ipairs(list) do
+				local p = e.Parent and posOf(e)
+				if p then
+					local d = (p - r.Position).Magnitude
+					if not bd or d < bd then bi, bd = i, d end
+				end
+			end
+			if not bi then break end
+			local egg = table.remove(list, bi)
+			sayEgg("grab " .. egg.Name, "Nhặt Egg: đang nhặt " .. egg.Name)
+			if grabEgg(egg, my) then
+				eggTotal = eggTotal + 1
+				if eggTarget > 0 and eggTotal >= eggTarget then
+					finishEggs()
+					return
+				end
+				setStatus("Nhặt Egg: đã nhặt " .. eggTotal .. (eggTarget > 0 and ("/" .. eggTarget) or "") .. " quả")
+				lastEggMsg = nil
+			elseif eggRun == my then
+				eggSkip[egg] = os.clock() + EGG_PICK_SKIP
+				setStatus("Nhặt Egg: bỏ qua " .. egg.Name .. " (nhặt " .. EGG_PICK_TIME .. "s không được, kiểm tra từ khóa trứng / cách nhặt)")
+			end
+		end
+		eggBusy = false
+	end
+
+	Callbacks[EGG_PICK_TOGGLE] = function(on)
+		if on then exclusive(EGG_PICK_TOGGLE) end -- loại trừ nhau với Chặt Cây Forest / Autumn / Sakura / Snow / Desert / Water / Vulcano / Celestial / Void / Nghĩa Trang Ma Ám
+		eggRun = eggRun + 1
+		eggBusy = false
+		lastEggMsg = nil
+		eggTotal = 0
+		eggIdleSince = nil
+		if eggAddConn then
+			eggAddConn:Disconnect()
+			eggAddConn = nil
+		end
+		if eggRemConn then
+			eggRemConn:Disconnect()
+			eggRemConn = nil
+		end
+		eggSet = setmetatable({}, { __mode = "k" })
+		eggSkip = setmetatable({}, { __mode = "k" })
+		if not on then return end
+		local c0 = player.Character
+		local r0 = c0 and c0:FindFirstChild("HumanoidRootPart")
+		eggCenter = r0 and r0.Position -- chốt tâm nhặt egg = chỗ đang đứng lúc bật
+		eggHome = EGG_HOME_POS and CFrame.new(EGG_HOME_POS) or (r0 and r0.CFrame) -- chỗ dự phòng nếu chưa lưu được vị trí mảnh đất
+		for _, d in ipairs(workspace:GetDescendants()) do
+			if (d:IsA("Model") or d:IsA("BasePart")) and matchAny(d.Name, EGG_KEYWORDS) then eggSet[d] = true end
+		end
+		eggAddConn = workspace.DescendantAdded:Connect(function(d)
+			if (d:IsA("Model") or d:IsA("BasePart")) and matchAny(d.Name, EGG_KEYWORDS) then eggSet[d] = true end
+		end)
+		eggRemConn = workspace.DescendantRemoving:Connect(function(d)
+			eggSet[d] = nil
+		end)
+		local my = eggRun
+		task.spawn(function()
+			while eggRun == my do
+				local ok, err = pcall(eggPass, my)
+				if not ok then
+					eggBusy = false
+					warn("[Nhặt Egg] " .. tostring(err))
+					task.wait(1)
+				end
+				task.wait()
+			end
+		end)
+	end
+end) -- hết khối TAB FOREST
+
+----------------------------------------------------------------
+-- Thanh bên (điều hướng): bấm tab nào hiện trang của tab đó
+----------------------------------------------------------------
+local side = new("Frame", {
+	BackgroundColor3 = Color3.fromRGB(8, 16, 40), BackgroundTransparency = 0.3,
+	Position = UDim2.fromOffset(MARG, BODY_TOP), Size = UDim2.new(0, SIDE_W, 1, -(BODY_TOP + BOT)),
+}, main)
+corner(side, 30)
+rainbowStroke(side, 3)
+
+local navList = new("Frame", { BackgroundTransparency = 1, Position = UDim2.fromOffset(14, 14), Size = UDim2.new(1, -28, 0, 0), AutomaticSize = Enum.AutomaticSize.Y }, side)
+list(navList, 12)
+
+for i, t in ipairs(TABS) do
+	local b = new("TextButton", {
+		Text = t[1] .. "   " .. t[2], TextSize = ts(29), Font = F_MED, TextColor3 = TEXT, AutoButtonColor = false,
+		TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = i, Size = UDim2.new(1, 0, 0, 112),
+		BackgroundColor3 = theme.accent, BackgroundTransparency = 1,
+	}, navList)
+	corner(b, 26)
+	pad(b, 0, 0, 0, 36)
+	navByName[t[2]] = b
+	b.Activated:Connect(function() showTab(t[2]) end)
+end
+themed(function()
+	for _, b in pairs(navByName) do b.BackgroundColor3 = theme.accent end
+end)
+
+showTab("Thông Tin")
+setOpen(true)
+
+----------------------------------------------------------------
+-- THÔNG BÁO CHÀO MỪNG khi vào Menu
+-- Đặt trong một hàm riêng để KHÔNG thêm biến local ở cấp ngoài cùng
+-- (Luau giới hạn 200 biến local mỗi hàm, file này đã gần chạm mức đó).
+-- Thông báo trượt xuống từ trên cùng màn hình, tự đóng sau vài giây,
+-- chạm vào là đóng ngay. Tôn trọng công tắc Cài Đặt → "Hiển Thị Thông Báo".
+----------------------------------------------------------------
+task.spawn(function()
+	local WELCOME_TITLE = "Chào mừng, %s!" -- %s = tên hiển thị của người chơi
+	local WELCOME_TEXT = "Vu Dong Script đã sẵn sàng. Chúc bạn chơi game vui vẻ!"
+	local WELCOME_TIME = 4 -- số giây hiện thông báo
+	local WELCOME_EVERY_OPEN = false -- true = hiện lại mỗi lần mở menu (false = chỉ hiện 1 lần lúc vào)
+
+	local TOAST_W, TOAST_H = 420, 104
+	local toast = nil -- thông báo đang hiện
+
+	-- tên người chơi có thể chứa ký tự < > & nên phải thoát trước khi dùng RichText
+	local function escape(s)
+		return (s:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"))
+	end
+
+	local function dismiss(t)
+		if toast ~= t or not t.Parent then return end
+		toast = nil
+		local tw = TweenService:Create(t, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			Position = UDim2.new(0.5, 0, 0, -(TOAST_H + 30)),
+		})
+		tw.Completed:Connect(function() t:Destroy() end)
+		tw:Play()
+	end
+
+	local function notify(title, text, seconds)
+		if State["Hiển Thị Thông Báo"] == false then return end
+		seconds = seconds or 4
+		if toast then toast:Destroy() toast = nil end -- thông báo mới thay thông báo cũ
+
+		local t = new("Frame", {
+			Name = "VuDongToast", AnchorPoint = Vector2.new(0.5, 0), ZIndex = 100,
+			Position = UDim2.new(0.5, 0, 0, -(TOAST_H + 30)),
+			Size = UDim2.fromOffset(TOAST_W, TOAST_H),
+			BackgroundColor3 = Color3.fromRGB(11, 22, 54),
+		}, gui)
+		toast = t
+		corner(t, 22)
+		rainbowStroke(t, 3)
+		-- màn hình hẹp (điện thoại dọc) thì thu nhỏ cho vừa
+		new("UIScale", { Scale = math.clamp((gui.AbsoluteSize.X - 24) / TOAST_W, 0.5, 1) }, t)
+
+		label(t, { Text = "👑", TextSize = 38, Font = F_BOLD, TextXAlignment = Enum.TextXAlignment.Center,
+			Position = UDim2.fromOffset(10, 0), Size = UDim2.fromOffset(70, TOAST_H - 8) }, true)
+		label(t, { RichText = true, TextSize = 23, Font = F_BOLD, TextTruncate = Enum.TextTruncate.AtEnd,
+			Text = '<font color="#' .. theme.accent2:ToHex() .. '">' .. escape(title) .. "</font>",
+			Position = UDim2.fromOffset(84, 12), Size = UDim2.new(1, -98, 0, 30) }, true)
+		label(t, { Text = text, TextSize = 17, TextColor3 = MUTED, TextWrapped = true,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			Position = UDim2.fromOffset(84, 44), Size = UDim2.new(1, -98, 0, 46) }, true)
+
+		-- thanh thời gian chạy ngắn dần ở đáy
+		local bar = new("Frame", {
+			BackgroundColor3 = theme.accent, BorderSizePixel = 0, AnchorPoint = Vector2.new(0, 1),
+			Position = UDim2.new(0, 16, 1, -8), Size = UDim2.new(1, -32, 0, 4),
+		}, t)
+		corner(bar, 2)
+
+		-- chạm vào thông báo để đóng ngay
+		new("TextButton", { Text = "", BackgroundTransparency = 1, ZIndex = 101, Size = UDim2.fromScale(1, 1) }, t)
+			.Activated:Connect(function() dismiss(t) end)
+
+		TweenService:Create(t, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Position = UDim2.new(0.5, 0, 0, 20),
+		}):Play()
+		TweenService:Create(bar, TweenInfo.new(seconds, Enum.EasingStyle.Linear), {
+			Size = UDim2.new(0, 0, 0, 4),
+		}):Play()
+		task.delay(seconds, function() dismiss(t) end)
+	end
+
+	local function welcome()
+		notify(WELCOME_TITLE:format(player.DisplayName), WELCOME_TEXT, WELCOME_TIME)
+	end
+
+	if WELCOME_EVERY_OPEN then
+		main:GetPropertyChangedSignal("Visible"):Connect(function()
+			if main.Visible then welcome() end
+		end)
+	end
+
+	task.wait(0.4) -- chờ menu hiện ra rồi mới trượt thông báo xuống
+	welcome()
+end)
+
+----------------------------------------------------------------
+-- CHỮ 7 MÀU NHẤP NHÁY CHO TOÀN BỘ MENU
+-- Mọi chữ trong menu (tên tab, tiêu đề, nút, hàng chức năng, bảng kết quả quét, thông báo...)
+-- đổi qua 7 màu cầu vồng: đỏ, cam, vàng, lục, lam, chàm, tím - nhấp nháy liên tục.
+-- Bật / tắt ở: Cài Đặt → "Chữ 7 Màu Nhấp Nháy". Tắt thì mọi chữ trở lại màu gốc.
+-- Chỉnh tốc độ / kiểu ngay bên dưới: TEXT_STEP, TEXT_WAVE, TEXT_COLORS.
+-- Đặt trong một hàm riêng (task.spawn) để KHÔNG tốn thêm biến local cấp ngoài (Luau giới hạn 200, file này đã gần chạm mức đó).
+----------------------------------------------------------------
+task.spawn(function()
+	local TEXT_STEP = 0.25 -- giây giữa mỗi lần đổi màu (nhỏ hơn = nhấp nháy nhanh hơn)
+	local TEXT_WAVE = true -- true: mỗi chữ lệch nhau 1 màu (cầu vồng chạy) | false: cả menu cùng đổi màu một lúc
+	local TEXT_STROKE = 0.5 -- viền đen mỏng quanh chữ cho dễ đọc trên mọi màu (1 = không viền)
+	local TEXT_NAME = "Chữ 7 Màu Nhấp Nháy"
+	local TEXT_COLORS = {
+		Color3.fromRGB(255, 70, 70), -- đỏ
+		Color3.fromRGB(255, 165, 50), -- cam
+		Color3.fromRGB(255, 235, 60), -- vàng
+		Color3.fromRGB(70, 240, 110), -- lục
+		Color3.fromRGB(60, 220, 255), -- lam
+		Color3.fromRGB(110, 150, 255), -- chàm
+		Color3.fromRGB(205, 115, 255), -- tím
+	}
+
+	-- R.objs[chữ] = { idx = thứ tự, inMain = nằm trong menu chính, color / text / stroke... = giá trị gốc để trả lại khi tắt }
+	local R = { on = false, step = 0, n = 0, objs = setmetatable({}, { __mode = "k" }), stash = {} }
+
+	-- bỏ màu cố định trong chữ có định dạng, vd <font color="#38d4ff">Script</font> → Script
+	local function stripColor(t)
+		return (string.gsub(t, '<font color="[^"]*">(.-)</font>', "%1"))
+	end
+
+	local function applyStyle(o, rec)
+		if rec.stroke >= 1 and TEXT_STROKE < 1 then
+			o.TextStrokeColor3 = Color3.new(0, 0, 0)
+			o.TextStrokeTransparency = TEXT_STROKE
+		end
+		if o.RichText and string.find(o.Text, "<font color=", 1, true) then
+			rec.text = o.Text
+			rec.stripped = stripColor(o.Text)
+			o.Text = rec.stripped
+		end
+	end
+
+	-- đổi màu tất cả chữ sang màu của lượt này
+	local function tick()
+		R.step += 1
+		local menuOn = main.Visible
+		local nC = #TEXT_COLORS
+		for o, rec in pairs(R.objs) do
+			if o.Parent and (menuOn or not rec.inMain) then
+				o.TextColor3 = TEXT_COLORS[((TEXT_WAVE and rec.idx or 0) + R.step) % nC + 1]
+			end
+		end
+	end
+
+	local function register(o)
+		if R.objs[o] then return end
+		if not (o:IsA("TextLabel") or o:IsA("TextButton") or o:IsA("TextBox")) then return end
+		if o:FindFirstAncestorWhichIsA("BillboardGui") then return end
+		R.n += 1
+		local rec = {
+			idx = R.n, inMain = o:IsDescendantOf(main), color = o.TextColor3, text = o.Text,
+			stroke = o.TextStrokeTransparency, strokeColor = o.TextStrokeColor3,
+		}
+		R.objs[o] = rec
+		-- chữ đổi nội dung (trạng thái, kết quả quét...): giữ bản gốc để trả lại khi tắt, bản đang hiện thì bỏ màu cố định
+		o:GetPropertyChangedSignal("Text"):Connect(function()
+			local t = o.Text
+			if t == rec.stripped then return end
+			rec.text = t
+			rec.stripped = nil
+			if R.on and o.RichText and string.find(t, "<font color=", 1, true) then
+				rec.stripped = stripColor(t)
+				o.Text = rec.stripped
+			end
+		end)
+		if R.on then applyStyle(o, rec) end
+	end
+
+	local function setOn(on)
+		R.on = on
+		if on then
+			-- chữ nhấp nháy riêng của trang Thông Tin được giao lại cho hệ thống chung này
+			for i = #blinkTargets, 1, -1 do
+				if blinkTargets[i][2] == "TextColor3" then
+					table.insert(R.stash, table.remove(blinkTargets, i))
+				end
+			end
+			for o, rec in pairs(R.objs) do
+				if o.Parent then
+					rec.color, rec.text, rec.stripped = o.TextColor3, o.Text, nil
+					applyStyle(o, rec)
+				end
+			end
+			tick()
+		else
+			for o, rec in pairs(R.objs) do
+				if o.Parent then
+					o.TextColor3 = rec.color
+					o.TextStrokeTransparency, o.TextStrokeColor3 = rec.stroke, rec.strokeColor
+					if rec.stripped then
+						o.Text = rec.text
+						rec.stripped = nil
+					end
+				end
+			end
+			for _, e in ipairs(R.stash) do table.insert(blinkTargets, e) end
+			table.clear(R.stash)
+			for _, fn in ipairs(themeFns) do pcall(fn) end -- tô lại các chữ theo màu giao diện
+		end
+	end
+
+	-- công tắc trong Cài Đặt
+	toggle(setCard, 6, "🌈", TEXT_NAME, true, "Cài Đặt")
+	Callbacks[TEXT_NAME] = function(on) setOn(on) end
+
+	for _, d in ipairs(gui:GetDescendants()) do register(d) end
+	gui.DescendantAdded:Connect(register) -- chữ tạo thêm về sau (thông báo, kết quả...) cũng tự nhấp nháy
+
+	setOn(State[TEXT_NAME] ~= false)
+	task.spawn(function()
+		while gui.Parent do
+			if R.on then tick() end
+			task.wait(TEXT_STEP)
+		end
+	end)
+end) -- hết khối Chữ 7 Màu Nhấp Nháy
