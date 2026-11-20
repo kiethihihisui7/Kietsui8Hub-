@@ -1,0 +1,670 @@
+-- ==========================================
+-- 1. CẤU HÌNH & HÀM CHẠY SCRIPT TỪ XA
+-- ==========================================
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+
+local function notify(title, text, duration)
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = title or "Menu Hub",
+            Text = text or "",
+            Duration = duration or 4
+        })
+    end)
+end
+
+local function runRemoteScript(name, url, bypassCache, beforeRun)
+    task.spawn(function()
+        notify("Đang tải...", name, 3)
+
+        if typeof(beforeRun) == "function" then
+            local okBefore, errBefore = pcall(beforeRun)
+            if not okBefore then
+                warn("[BeforeRun Error] " .. tostring(name) .. ": " .. tostring(errBefore))
+                notify("Lỗi BeforeRun", tostring(errBefore), 5)
+                return
+            end
+        end
+
+        local finalUrl = url
+        if bypassCache then
+            local sep = string.find(url, "?", 1, true) and "&" or "?"
+            finalUrl = url .. sep .. "cb=" .. tostring(os.clock()) .. "_" .. tostring(math.random(1000, 9999))
+        end
+
+        local okFetch, sourceOrErr = pcall(function()
+            return game:HttpGet(finalUrl, true)
+        end)
+
+        if not okFetch or not sourceOrErr or sourceOrErr == "" then
+            warn("[HttpGet Error] " .. tostring(name) .. ": " .. tostring(sourceOrErr))
+            notify("Không tải được script", name, 5)
+            return
+        end
+
+        local fn, loadErr = loadstring(sourceOrErr)
+        if not fn then
+            warn("[Loadstring Error] " .. tostring(name) .. ": " .. tostring(loadErr))
+            notify("Lỗi biên dịch script", name, 5)
+            return
+        end
+
+        local okExec, execErr = pcall(fn)
+        if not okExec then
+            warn("[Runtime Error] " .. tostring(name) .. ": " .. tostring(execErr))
+            notify("Lỗi khi chạy script", name, 5)
+            return
+        end
+
+        notify("Thành công", "Đã chạy: " .. tostring(name), 3)
+    end)
+end
+
+-- ==========================================
+-- 2. DANH SÁCH SCRIPT (NO KEY & KEY)
+-- ==========================================
+local noKeyScripts = {
+    {
+        Name = "LongHiHi KaiTun Evolution X",
+        Url = "https://raw.githubusercontent.com/nguyenhuuthanhnhan2k11-ai/Redskidhub/refs/heads/main/longhihikaitunevolutionx",
+        BypassCache = false,
+        BeforeRun = function()
+            getgenv().Config = {
+                UI = true,
+                Team = "Marines",
+                FPS = 15,
+                FPSBOOST = false,
+                GOD = true,
+                Saber = true,
+                CDK = true,
+                SkullGuitar = true,
+                RaceV3 = true,
+                AutoSea2 = true,
+                AutoSea3 = true,
+                FarmKatakuri = true,
+                FarmBeautifulPirates = true,
+                PanicMode = {
+                    Enabled = true,
+                    LowHealthPercent = 20,
+                    SafeHealthPercent = 75,
+                    EscapeHeight = 2000,
+                    CheckInterval = 1,
+                },
+                LowGraphics = true,
+                Sword = {
+                    ["Shark Saw"] = true,
+                    ["Wardens Sword"] = true,
+                    ["Pole (1st Form)"] = true,
+                    ["Gravity Blade"] = true,
+                    ["Longsword"] = true,
+                    ["Rengoku"] = true,
+                    ["Flail"] = true,
+                    ["Twin Hooks"] = true,
+                },
+            }
+            Config = getgenv().Config
+        end
+    },
+    { Name = "BNNKaiGodRemanke", Url = "https://raw.githubusercontent.com/LongHiHiScript/Scripts/refs/heads/main/BNNKaiGodRemanke.luau.lua", BypassCache = false },
+    { Name = "BlueX Hub", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = false },
+    { Name = "BananaCat Hub", Url = "https://raw.githubusercontent.com/Chiriku2013/BananaCatHub/refs/heads/main/BananaCatHub.lua", BypassCache = false },
+    { Name = "MTriet Hub", Url = "https://raw.githubusercontent.com/Minhtriettt/Free-Script/main/MTriet-Hub.lua", BypassCache = false },
+    { Name = "AnDepZai Hub", Url = "https://scriptblox.com/raw/Blox-Fruits-AnDepZai-Hub-20511", BypassCache = false },
+    {
+        Name = "LongXGen (Redskidhub)",
+        Url = "https://raw.githubusercontent.com/nguyenhuuthanhnhan2k11-ai/Redskidhub/refs/heads/main/longxgen.lua",
+        BypassCache = false,
+        BeforeRun = function()
+            getgenv().AutoExecute = true
+        end
+    },
+    { Name = "MeoX Hub", Url = "https://raw.githubusercontent.com/VanHoangIOS/MeoXHub/refs/heads/main/Main.lua", BypassCache = false },
+    { Name = "Banana Scythe v3", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Scythe/v3.luau", BypassCache = false },
+    { Name = "Banana Hub (Gojo)", Url = "https://raw.githubusercontent.com/gojosatoru751/scriptdz/refs/heads/main/Bananahub.lua", BypassCache = false },
+    { Name = "Banana v3", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/v3.luau", BypassCache = false },
+    { Name = "BF-CheemBanana", Url = "https://raw.githubusercontent.com/Dev-Meoz/LuaCyder-Meoz/refs/heads/main/BF-CheemBanana.lua", BypassCache = false },
+    { Name = "#01 Arvyn Hub (No Key)", Url = "https://api.luasentry.com/api/scripts/loader/e664cbd4c071c95381797367d7444a7b.lua", BypassCache = true },
+    { Name = "#02 Spiritual Gaming Hub (Keyless)", Url = "https://gist.githubusercontent.com/spiritualgaming1123-beep/f5e5089c5199e13c548c0db7c795d3fa/raw/299c3e094304e0cf2f1338fddb85dd428a23ae97/BloxFruitsHalloween", BypassCache = true },
+    { Name = "#03 Trident Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Trident/run.luau", BypassCache = true },
+    { Name = "#04 Arc Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Arcylic/refs/heads/main/ARC/update.luau", BypassCache = true },
+    { Name = "#05 Aquamarine Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Aquamarine/script.luau", BypassCache = true },
+    { Name = "#08 Ruby Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Ruby/script.lua", BypassCache = true },
+    { Name = "#09 Eclipse Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Stellar/refs/heads/main/Eclipse/script.luau", BypassCache = true },
+    { Name = "#14 KITE Hub (No Key)", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/KiteLoader", BypassCache = true },
+    { Name = "#16 TurboLite Hub (No Key)", Url = "https://raw.githubusercontent.com/TurboLite/Script/refs/heads/main/MainV2.lua", BypassCache = true },
+    { Name = "#22 Monster Hub (No Key)", Url = "https://raw.githubusercontent.com/giahuy2511-coder/MonsterHub/refs/heads/main/MonsterHubEN", BypassCache = true },
+    { Name = "#25 Ather Hub (Keyless)", Url = "https://api.luarmor.net/files/v4/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua", BypassCache = true },
+    { Name = "#33 Leaf Hub (No Key)", Url = "https://raw.githubusercontent.com/LeafHubScript/LeafHub/main/LeafHub.lua", BypassCache = true },
+    { Name = "#40 Zee Hub (No Key)", Url = "https://raw.githubusercontent.com/ZeeHubScript/ZeeHub/main/Loader.lua", BypassCache = true },
+    { Name = "#51 Blue X Hub (No Key)", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#65 No Key Mobile", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/KiteLoader", BypassCache = true },
+    { Name = "#70 Zinner Hub (No Key)", Url = "https://raw.githubusercontent.com/HoangNguyenk8/Scripts/refs/heads/main/Loader.lua", BypassCache = true },
+    { Name = "#81 Strawberry (No Key)", Url = "https://raw.githubusercontent.com/StrawberryHubScript/Strawberry/main/Loader.lua", BypassCache = true },
+    { Name = "#82 No Key Pastebin Aimbot", Url = "https://pastebin.com/raw/uECLqG3j", BypassCache = true },
+    { Name = "#95 MTriet Hub", Url = "https://raw.githubusercontent.com/Minhtriettt/Free-Script/main/MTriet-Hub.lua", BypassCache = true },
+    {
+        Name = "#97 REDz Hub Mobile",
+        Url = "https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().JoinTeam = "Pirates"
+            getgenv().Translator = true
+        end
+    },
+}
+
+local keyScripts = {
+    { Name = "Pastebin Script (yL0smCmb)", Url = "https://pastebin.com/raw/yL0smCmb", BypassCache = true },
+    { Name = "#06 VoidHub", Url = "https://voidon.top/api/loader/main", BypassCache = true },
+    { Name = "#07 Gravity Hub", Url = "https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#10 True Hub", Url = "https://luaegis.net/scripts/v4/loaders/08f7c7f0-7917-4a53-99b5-84ae0dec28a9.lua", BypassCache = true },
+    { Name = "#11 NEVA Hub", Url = "https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2", BypassCache = true },
+    { Name = "#12 Flow Hub", Url = "https://api.luarmor.net/files/v4/loaders/5946add9ab91f1e04cb005346a8b1968.lua", BypassCache = true },
+    {
+        Name = "#13 NightMystic Hub",
+        Url = "https://raw.githubusercontent.com/Dev-NightMystic/Bloxfruits/refs/heads/main/Script.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().team = "Marines"
+        end
+    },
+    { Name = "#15 Xynapse Hub", Url = "https://pastebin.com/raw/uECLqG3j", BypassCache = true },
+    { Name = "#17 Solix Hub", Url = "https://raw.githubusercontent.com/meobeo8/a/a/a", BypassCache = true },
+    {
+        Name = "#20 Midnight Hub",
+        Url = "https://raw.githubusercontent.com/Ohofo2279/Midnight/refs/heads/main/MidnightX-BloxFruits.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Team = "Pirates"
+        end
+    },
+    { Name = "#23 Novus Hub", Url = "https://api.luarmor.net/files/v3/loaders/14f9e9054b916dc305c310f9549a5272.lua", BypassCache = true },
+    { Name = "#24 Relz Hub", Url = "https://relzhub.farrelghibran.com/loader.lua", BypassCache = true },
+    { Name = "#26 Annie Hub", Url = "https://raw.githubusercontent.com/Anniecreate86/BloxFruits/refs/heads/main/BetaHub-BF", BypassCache = true },
+    {
+        Name = "#27 Dragon Hub",
+        Url = "https://raw.githubusercontent.com/dragonhubdev/dragonwitheveryone/refs/heads/main/Main-BF.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().team = "Pirates"
+        end
+    },
+    { Name = "#29 Meo X Hub", Url = "https://raw.githubusercontent.com/VanHoangIOS/MeoXHub/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#30 Teddy Hub", Url = "https://raw.githubusercontent.com/Teddyseetink/Haidepzai/refs/heads/main/TeddyHub.lua", BypassCache = true },
+    { Name = "#31 MatsuneHub", Url = "https://raw.githubusercontent.com/AnDepZaiHub/AnDepZai/main/MatsuneHub.lua", BypassCache = true },
+    { Name = "#32 Zynex Hub", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/ZynHub", BypassCache = true },
+    { Name = "#34 King Rua Hub", Url = "https://raw.githubusercontent.com/KingRuaHub/KingRua/main/Loader.lua", BypassCache = true },
+    { Name = "#35 Night Hub", Url = "https://raw.githubusercontent.com/NightHubScript/NightHub/main/Loader.lua", BypassCache = true },
+    {
+        Name = "#36 Xeter Hub GUI",
+        Url = "https://raw.githubusercontent.com/TlDinhKhoi/Xeter/refs/heads/main/Main.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Version = "V1"
+            getgenv().Team = "Marines"
+        end
+    },
+    { Name = "#37 QuantumOnyx Hub", Url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua", BypassCache = true },
+    { Name = "#38 Apple Hub", Url = "https://raw.githubusercontent.com/AppleHubScript/AppleHub/main/Loader.lua", BypassCache = true },
+    { Name = "#39 Cookie Hub", Url = "https://raw.githubusercontent.com/Jadelly261/BloxFruits/refs/heads/main/Cookie", BypassCache = true },
+    { Name = "#41 Zyn Hub", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/ZynHub", BypassCache = true },
+    { Name = "#42 NazuX Hub", Url = "https://raw.githubusercontent.com/NazuXHub/NazuX/main/Loader.lua", BypassCache = true },
+    { Name = "#43 Best Blox Fruits Script", Url = "https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau", BypassCache = true },
+    { Name = "#44 Vector HUB", Url = "https://raw.githubusercontent.com/AAwful/Vector_Hub/0/v2", BypassCache = true },
+    { Name = "#45 Auto Cash Farm", Url = "https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#46 Foggy Hub", Url = "https://raw.githubusercontent.com/FoggyHubScript/FoggyHub/main/Loader.lua", BypassCache = true },
+    { Name = "#47 Teddy Hub", Url = "https://raw.githubusercontent.com/Teddyseetink/Haidepzai/refs/heads/main/TeddyHub.lua", BypassCache = true },
+    {
+        Name = "#48 Best Auto Farm (RedzHub)",
+        Url = "https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().JoinTeam = "Pirates"
+            getgenv().Translator = true
+        end
+    },
+    {
+        Name = "#49 Xeter Hub Mobile",
+        Url = "https://raw.githubusercontent.com/TlDinhKhoi/Xeter/refs/heads/main/Main.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Version = "V1"
+            getgenv().Team = "Pirates"
+        end
+    },
+    { Name = "#50 DatThg Hub", Url = "https://raw.githubusercontent.com/DatThgVN/DatThgHub/main/DatThgV4.lua", BypassCache = true },
+    { Name = "#52 XeraUltron", Url = "https://raw.githubusercontent.com/XeraUltron/BloxFruits/main/Loader.lua", BypassCache = true },
+    { Name = "#53 Volcano Hub v3", Url = "https://raw.githubusercontent.com/indexeduu/BF-NewVer/refs/heads/main/V3New.lua", BypassCache = true },
+    { Name = "#54 Nat Hub", Url = "https://raw.githubusercontent.com/NatHubScript/NatHub/main/Loader.lua", BypassCache = true },
+    { Name = "#55 Vxeze Hub", Url = "https://raw.githubusercontent.com/Dex-Bear/Vxezehub/refs/heads/main/Skidlamcho.txt", BypassCache = true },
+    { Name = "#56 Quantum Onyx Hub Mobile", Url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua", BypassCache = true },
+    { Name = "#57 Mod Attack Hub", Url = "https://raw.githubusercontent.com/ModAttackHub/ModAttack/main/Loader.lua", BypassCache = true },
+    { Name = "#58 New Script Mobile", Url = "https://raw.githubusercontent.com/TurboLite/Script/refs/heads/main/MainV2.lua", BypassCache = true },
+    { Name = "#59 Zen Hub", Url = "https://raw.githubusercontent.com/ZenHubScript/ZenHub/main/Loader.lua", BypassCache = true },
+    { Name = "#60 EgoHub GUI", Url = "https://raw.githubusercontent.com/EgoHubScript/EgoHub/main/Loader.lua", BypassCache = true },
+    { Name = "#61 Mobile Auto Farm Lvl", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#62 Hack Auto Farm", Url = "https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#63 Nicuse Blox Fruits", Url = "https://raw.githubusercontent.com/NicuseScript/Nicuse/main/Loader.lua", BypassCache = true },
+    { Name = "#64 Tsuo Hub", Url = "https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/bloxfruits", BypassCache = true },
+    { Name = "#66 NatHub Chest Farm", Url = "https://raw.githubusercontent.com/NatHubScript/NatHub/main/Chest.lua", BypassCache = true },
+    { Name = "#67 RoHub", Url = "https://raw.githubusercontent.com/RoHubScript/RoHub/main/Loader.lua", BypassCache = true },
+    {
+        Name = "#68 Maru Copy Hub",
+        Url = "https://raw.githubusercontent.com/LuaCrack/KimP/refs/heads/main/MaruHub",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Team = "Marines"
+        end
+    },
+    {
+        Name = "#69 Quartyz Hub",
+        Url = "https://raw.githubusercontent.com/xQuartyx/QuartyzScript/main/Loader.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Mode = "OneClick"
+        end
+    },
+    { Name = "#71 Monster Hub Mobile", Url = "https://raw.githubusercontent.com/giahuy2511-coder/MonsterHub/refs/heads/main/MonsterHubEN", BypassCache = true },
+    { Name = "#72 Mukuro Hub", Url = "https://raw.githubusercontent.com/MukuroHubScript/Mukuro/main/Loader.lua", BypassCache = true },
+    { Name = "#73 TheBillDevHub", Url = "https://raw.githubusercontent.com/TheBillDevHub/TheBillDev/main/Loader.lua", BypassCache = true },
+    { Name = "#74 Forge Hub", Url = "https://raw.githubusercontent.com/ForgeHubScript/ForgeHub/main/Loader.lua", BypassCache = true },
+    { Name = "#75 Ronix Hub", Url = "https://raw.githubusercontent.com/RonixHubScript/Ronix/main/Loader.lua", BypassCache = true },
+    { Name = "#76 Lumin Hub", Url = "https://raw.githubusercontent.com/LuminHubScript/Lumin/main/Loader.lua", BypassCache = true },
+    { Name = "#77 Ziner Hub Mobile", Url = "https://raw.githubusercontent.com/HoangNguyenk8/Scripts/refs/heads/main/Loader.lua", BypassCache = true },
+    { Name = "#78 PC Auto Farm GUI (Solara)", Url = "https://raw.githubusercontent.com/TurboLite/Script/refs/heads/main/MainV2.lua", BypassCache = true },
+    { Name = "#79 Lap Hub", Url = "https://raw.githubusercontent.com/LapHubScript/LapHub/main/Loader.lua", BypassCache = true },
+    { Name = "#80 Master Hub Mobile", Url = "https://raw.githubusercontent.com/MasterHubScript/MasterHub/main/Loader.lua", BypassCache = true },
+    { Name = "#83 Rise Hub", Url = "https://raw.githubusercontent.com/RiseHubScript/RiseHub/main/Loader.lua", BypassCache = true },
+    { Name = "#84 Experience Hub", Url = "https://raw.githubusercontent.com/ExperienceHubScript/Experience/main/Loader.lua", BypassCache = true },
+    { Name = "#85 Redeem Codes & Farm Mobs", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = true },
+    {
+        Name = "#86 Auto Kaitun Script",
+        Url = "https://raw.githubusercontent.com/xQuartyx/QuartyzScript/main/Loader.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Mode = "OneClick"
+        end
+    },
+    { Name = "#87 AnDepZai Hub", Url = "https://scriptblox.com/raw/Blox-Fruits-AnDepZai-Hub-20511", BypassCache = true },
+    { Name = "#88 Cokka Hub", Url = "https://raw.githubusercontent.com/CokkaHubScript/CokkaHub/main/Loader.lua", BypassCache = true },
+    {
+        Name = "#89 Xero Hub",
+        Url = "https://raw.githubusercontent.com/Xero2409/XeroHub/refs/heads/main/main.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Team = "Marines"
+            getgenv().Hide_Menu = false
+        end
+    },
+    { Name = "#90 Infinite Hub", Url = "https://raw.githubusercontent.com/InfiniteHubScript/Infinite/main/Loader.lua", BypassCache = true },
+    { Name = "#91 Auto Bounty Script", Url = "https://raw.githubusercontent.com/Dev-NightMystic/Bloxfruits/refs/heads/main/Script.lua", BypassCache = true },
+    { Name = "#92 Spectrum Hub", Url = "https://raw.githubusercontent.com/SpectrumHubScript/Spectrum/main/Loader.lua", BypassCache = true },
+    { Name = "#93 Dominance Hub", Url = "https://raw.githubusercontent.com/DominanceHubScript/Dominance/main/Loader.lua", BypassCache = true },
+    { Name = "#94 Chest Farm Script", Url = "https://raw.githubusercontent.com/NatHubScript/NatHub/main/Chest.lua", BypassCache = true },
+    { Name = "#96 OMG Hub", Url = "https://raw.githubusercontent.com/OmgHubScript/OmgHub/main/Loader.lua", BypassCache = true },
+    { Name = "#98 Alchemy Hub", Url = "https://raw.githubusercontent.com/AlchemyHubScript/Alchemy/main/Loader.lua", BypassCache = true },
+    { Name = "#99 Annie Hub Mobile", Url = "https://raw.githubusercontent.com/Anniecreate86/BloxFruits/refs/heads/main/BetaHub-BF", BypassCache = true },
+}
+
+-- ==========================================
+-- 3. TẠO GIAO DIỆN (MENU CHÍNH "+-" & BLOX FRUIT MENU)
+-- ==========================================
+local parentGui = nil
+pcall(function()
+    parentGui = CoreGui
+end)
+if not parentGui or not pcall(function() return parentGui.Name end) then
+    parentGui = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local oldGui = parentGui:FindFirstChild("BloxFruitMainMenu_UI")
+if oldGui then
+    oldGui:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "BloxFruitMainMenu_UI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = parentGui
+
+local function makeDraggable(frame, handle)
+    handle = handle or frame
+    local dragging = false
+    local dragInput = nil
+    local dragStart = nil
+    local startPos = nil
+
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+end
+
+-- --- MENU CHÍNH "+-" (NÚT NỔI THU GỌN / MỞ RỘNG) ---
+local MainToggleBtn = Instance.new("TextButton")
+MainToggleBtn.Name = "MainPlusMinusButton"
+MainToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+MainToggleBtn.Position = UDim2.new(0.03, 0, 0.2, 0)
+MainToggleBtn.BackgroundColor3 = Color3.fromRGB(28, 30, 38)
+MainToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MainToggleBtn.Text = "+-"
+MainToggleBtn.Font = Enum.Font.GothamBold
+MainToggleBtn.TextSize = 18
+MainToggleBtn.ZIndex = 20
+MainToggleBtn.Parent = ScreenGui
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 12)
+toggleCorner.Parent = MainToggleBtn
+
+local toggleStroke = Instance.new("UIStroke")
+toggleStroke.Color = Color3.fromRGB(0, 170, 255)
+toggleStroke.Thickness = 1.5
+toggleStroke.Parent = MainToggleBtn
+
+-- --- KHUNG MENU BLOX FRUIT CHÍNH ---
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "BloxFruitMenuFrame"
+MainFrame.Size = UDim2.new(0, 460, 0, 360)
+MainFrame.Position = UDim2.new(0.5, -230, 0.5, -180)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 22, 28)
+MainFrame.BorderSizePixel = 0
+MainFrame.ZIndex = 10
+MainFrame.Parent = ScreenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = MainFrame
+
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(55, 60, 75)
+mainStroke.Thickness = 1.2
+mainStroke.Parent = MainFrame
+
+-- Thanh tiêu đề
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 42)
+TopBar.BackgroundColor3 = Color3.fromRGB(28, 31, 40)
+TopBar.BorderSizePixel = 0
+TopBar.ZIndex = 11
+TopBar.Parent = MainFrame
+
+local topCorner = Instance.new("UICorner")
+topCorner.CornerRadius = UDim.new(0, 12)
+topCorner.Parent = TopBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -110, 1, 0)
+TitleLabel.Position = UDim2.new(0, 14, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "BLOX FRUIT MENU"
+TitleLabel.TextColor3 = Color3.fromRGB(240, 245, 255)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 15
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.ZIndex = 12
+TitleLabel.Parent = TopBar
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Size = UDim2.new(0, 32, 0, 28)
+MinimizeBtn.Position = UDim2.new(1, -74, 0.5, -14)
+MinimizeBtn.BackgroundColor3 = Color3.fromRGB(45, 50, 65)
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.Text = "-"
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.TextSize = 16
+MinimizeBtn.ZIndex = 12
+MinimizeBtn.Parent = TopBar
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 6)
+minCorner.Parent = MinimizeBtn
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Name = "CloseBtn"
+CloseBtn.Size = UDim2.new(0, 32, 0, 28)
+CloseBtn.Position = UDim2.new(1, -38, 0.5, -14)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(165, 45, 55)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Text = "X"
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 13
+CloseBtn.ZIndex = 12
+CloseBtn.Parent = TopBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = CloseBtn
+
+-- Thanh Tab No Key / Key
+local TabBar = Instance.new("Frame")
+TabBar.Size = UDim2.new(1, -24, 0, 34)
+TabBar.Position = UDim2.new(0, 12, 0, 50)
+TabBar.BackgroundTransparency = 1
+TabBar.ZIndex = 11
+TabBar.Parent = MainFrame
+
+local NoKeyTabBtn = Instance.new("TextButton")
+NoKeyTabBtn.Size = UDim2.new(0.49, 0, 1, 0)
+NoKeyTabBtn.Position = UDim2.new(0, 0, 0, 0)
+NoKeyTabBtn.BackgroundColor3 = Color3.fromRGB(0, 145, 220)
+NoKeyTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoKeyTabBtn.Text = "No Key (" .. tostring(#noKeyScripts) .. ")"
+NoKeyTabBtn.Font = Enum.Font.GothamBold
+NoKeyTabBtn.TextSize = 13
+NoKeyTabBtn.ZIndex = 12
+NoKeyTabBtn.Parent = TabBar
+
+local noKeyCorner = Instance.new("UICorner")
+noKeyCorner.CornerRadius = UDim.new(0, 8)
+noKeyCorner.Parent = NoKeyTabBtn
+
+local KeyTabBtn = Instance.new("TextButton")
+KeyTabBtn.Size = UDim2.new(0.49, 0, 1, 0)
+KeyTabBtn.Position = UDim2.new(0.51, 0, 0, 0)
+KeyTabBtn.BackgroundColor3 = Color3.fromRGB(36, 40, 52)
+KeyTabBtn.TextColor3 = Color3.fromRGB(185, 195, 210)
+KeyTabBtn.Text = "Key Scripts (" .. tostring(#keyScripts) .. ")"
+KeyTabBtn.Font = Enum.Font.GothamBold
+KeyTabBtn.TextSize = 13
+KeyTabBtn.ZIndex = 12
+KeyTabBtn.Parent = TabBar
+
+local keyCorner = Instance.new("UICorner")
+keyCorner.CornerRadius = UDim.new(0, 8)
+keyCorner.Parent = KeyTabBtn
+
+-- Ô tìm kiếm nhanh
+local SearchBox = Instance.new("TextBox")
+SearchBox.Size = UDim2.new(1, -24, 0, 32)
+SearchBox.Position = UDim2.new(0, 12, 0, 90)
+SearchBox.BackgroundColor3 = Color3.fromRGB(30, 33, 43)
+SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SearchBox.PlaceholderColor3 = Color3.fromRGB(130, 140, 160)
+SearchBox.PlaceholderText = "Tìm tên Hub / Script..."
+SearchBox.Text = ""
+SearchBox.Font = Enum.Font.Gotham
+SearchBox.TextSize = 13
+SearchBox.ClearTextOnFocus = false
+SearchBox.ZIndex = 12
+SearchBox.Parent = MainFrame
+
+local searchCorner = Instance.new("UICorner")
+searchCorner.CornerRadius = UDim.new(0, 8)
+searchCorner.Parent = SearchBox
+
+-- Vùng cuộn danh sách script
+local ListFrame = Instance.new("ScrollingFrame")
+ListFrame.Size = UDim2.new(1, -24, 1, -134)
+ListFrame.Position = UDim2.new(0, 12, 0, 128)
+ListFrame.BackgroundColor3 = Color3.fromRGB(24, 27, 35)
+ListFrame.BorderSizePixel = 0
+ListFrame.ScrollBarThickness = 5
+ListFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+ListFrame.ZIndex = 11
+ListFrame.Parent = MainFrame
+
+local listCorner = Instance.new("UICorner")
+listCorner.CornerRadius = UDim.new(0, 8)
+listCorner.Parent = ListFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.Padding = UDim.new(0, 6)
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Parent = ListFrame
+
+local UIPadding = Instance.new("UIPadding")
+UIPadding.PaddingTop = UDim.new(0, 6)
+UIPadding.PaddingBottom = UDim.new(0, 6)
+UIPadding.PaddingLeft = UDim.new(0, 6)
+UIPadding.PaddingRight = UDim.new(0, 6)
+UIPadding.Parent = ListFrame
+
+local currentTab = "NoKey"
+local isMinimized = false
+local normalSize = MainFrame.Size
+local minimizedSize = UDim2.new(0, 460, 0, 42)
+
+local function clearList()
+    for _, child in ipairs(ListFrame:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+end
+
+local function renderScripts()
+    clearList()
+    local sourceList = (currentTab == "NoKey") and noKeyScripts or keyScripts
+    local keyword = string.lower(SearchBox.Text or "")
+    local count = 0
+
+    for idx, item in ipairs(sourceList) do
+        if keyword == "" or string.find(string.lower(item.Name), keyword, 1, true) then
+            count += 1
+            local btn = Instance.new("TextButton")
+            btn.Name = "ScriptBtn_" .. tostring(idx)
+            btn.Size = UDim2.new(1, -6, 0, 34)
+            btn.BackgroundColor3 = Color3.fromRGB(38, 42, 56)
+            btn.TextColor3 = Color3.fromRGB(235, 240, 250)
+            btn.Text = "  " .. item.Name
+            btn.TextXAlignment = Enum.TextXAlignment.Left
+            btn.Font = Enum.Font.GothamMedium
+            btn.TextSize = 13
+            btn.LayoutOrder = count
+            btn.ZIndex = 12
+            btn.Parent = ListFrame
+
+            local btnCorner = Instance.new("UICorner")
+            btnCorner.CornerRadius = UDim.new(0, 6)
+            btnCorner.Parent = btn
+
+            btn.MouseButton1Click:Connect(function()
+                runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun)
+            end)
+        end
+    end
+
+    task.defer(function()
+        ListFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 14)
+    end)
+end
+
+local function setTab(tabName)
+    currentTab = tabName
+    if tabName == "NoKey" then
+        NoKeyTabBtn.BackgroundColor3 = Color3.fromRGB(0, 145, 220)
+        NoKeyTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        KeyTabBtn.BackgroundColor3 = Color3.fromRGB(36, 40, 52)
+        KeyTabBtn.TextColor3 = Color3.fromRGB(185, 195, 210)
+    else
+        KeyTabBtn.BackgroundColor3 = Color3.fromRGB(0, 145, 220)
+        KeyTabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        NoKeyTabBtn.BackgroundColor3 = Color3.fromRGB(36, 40, 52)
+        NoKeyTabBtn.TextColor3 = Color3.fromRGB(185, 195, 210)
+    end
+    renderScripts()
+end
+
+local function toggleMinimize()
+    isMinimized = not isMinimized
+    local showBody = not isMinimized
+
+    TabBar.Visible = showBody
+    SearchBox.Visible = showBody
+    ListFrame.Visible = showBody
+    MinimizeBtn.Text = isMinimized and "+" or "-"
+
+    TweenService:Create(
+        MainFrame,
+        TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        { Size = isMinimized and minimizedSize or normalSize }
+    ):Play()
+end
+
+NoKeyTabBtn.MouseButton1Click:Connect(function()
+    setTab("NoKey")
+end)
+
+KeyTabBtn.MouseButton1Click:Connect(function()
+    setTab("Key")
+end)
+
+SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    renderScripts()
+end)
+
+MinimizeBtn.MouseButton1Click:Connect(toggleMinimize)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+MainToggleBtn.MouseButton1Click:Connect(function()
+    if not MainFrame.Visible then
+        MainFrame.Visible = true
+        if isMinimized then
+            toggleMinimize()
+        end
+    else
+        toggleMinimize()
+    end
+end)
+
+makeDraggable(MainToggleBtn)
+makeDraggable(MainFrame, TopBar)
+
+setTab("NoKey")
