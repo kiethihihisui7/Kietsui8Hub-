@@ -1,0 +1,467 @@
+repeat
+    task.wait()
+until game:IsLoaded() and game:GetService("Players").LocalPlayer
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+-- Load Rayfield UI Library
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Script Hub Loader",
+    Icon = 0,
+    LoadingTitle = "Script Hub Loader",
+    LoadingSubtitle = "No Key & Có Key",
+    Theme = "Default",
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+    ConfigurationSaving = {
+        Enabled = false,
+        FolderName = nil,
+        FileName = "ScriptHubConfig"
+    },
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = true
+    },
+    KeySystem = false
+})
+
+local NoKeyTab = Window:CreateTab("No Key", 4483362458)
+NoKeyTab:CreateSection("Danh sách Script No Key")
+
+local KeyTab = Window:CreateTab("Có Key", 4483362458)
+KeyTab:CreateSection("Danh sách Script Có Key")
+
+-- Nút nổi kéo thả có viền cầu vồng RGB để ẩn/hiện menu Rayfield nhanh
+local function createFloatingToggle()
+    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+    local oldGui = playerGui:FindFirstChild("TkietFloatingToggleGui")
+    if oldGui then
+        oldGui:Destroy()
+    end
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "TkietFloatingToggleGui"
+    gui.ResetOnSpawn = false
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent = playerGui
+
+    local button = Instance.new("TextButton")
+    button.Name = "ToggleButton"
+    button.Size = UDim2.new(0, 54, 0, 54)
+    button.Position = UDim2.new(0.03, 0, 0.35, 0)
+    button.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Text = "UI"
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 15
+    button.AutoButtonColor = true
+    button.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = button
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 2.5
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    stroke.Parent = button
+
+    -- Hiệu ứng đổi màu cầu vồng RGB chạy liên tục cho viền nút
+    local hue = 0
+    local rainbowConn
+    rainbowConn = RunService.RenderStepped:Connect(function(dt)
+        if not stroke or not stroke.Parent then
+            if rainbowConn then
+                rainbowConn:Disconnect()
+            end
+            return
+        end
+        hue = (hue + dt * 0.35) % 1
+        stroke.Color = Color3.fromHSV(hue, 0.9, 1)
+    end)
+
+    local menuVisible = true
+
+    local function setRayfieldVisible(state)
+        menuVisible = state
+        button.Text = menuVisible and "UI" or "Mở"
+
+        -- Tìm ScreenGui của Rayfield trong PlayerGui hoặc CoreGui nếu executor cho phép
+        local containers = { playerGui }
+        local okCore, coreGui = pcall(function()
+            return game:GetService("CoreGui")
+        end)
+        if okCore and coreGui then
+            table.insert(containers, coreGui)
+        end
+
+        for _, container in ipairs(containers) do
+            for _, child in ipairs(container:GetChildren()) do
+                if child ~= gui and (child:IsA("ScreenGui") or child:IsA("Folder")) then
+                    if child.Name == "Rayfield" or child:FindFirstChild("Main") then
+                        if child:IsA("ScreenGui") then
+                            child.Enabled = menuVisible
+                        else
+                            for _, desc in ipairs(child:GetDescendants()) do
+                                if desc:IsA("GuiObject") then
+                                    desc.Visible = menuVisible
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Xử lý kéo thả mượt cả cảm ứng và chuột, phân biệt với thao tác bấm (tap/click)
+    local dragging = false
+    local moved = false
+    local dragInput = nil
+    local dragStart = Vector2.zero
+    local startPos = button.Position
+
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            moved = false
+            dragInput = input
+            dragStart = input.Position
+            startPos = button.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    if dragInput == input then
+                        dragInput = nil
+                    end
+                end
+            end)
+        end
+    end)
+
+    button.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input == dragInput then
+            local delta = input.Position - dragStart
+            if delta.Magnitude > 6 then
+                moved = true
+            end
+            button.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+    end)
+
+    button.Activated:Connect(function()
+        if not moved then
+            setRayfieldVisible(not menuVisible)
+        end
+    end)
+end
+
+createFloatingToggle()
+
+local function runRemoteScript(name, url, bypassCache, beforeRun)
+    local success, err = pcall(function()
+        if type(beforeRun) == "function" then
+            beforeRun()
+        end
+        local source = bypassCache and game:HttpGet(url, true) or game:HttpGet(url)
+        local fn = loadstring(source)
+        if type(fn) ~= "function" then
+            error("Invalid Lua chunk returned from URL")
+        end
+        return fn()
+    end)
+
+    if success then
+        Rayfield:Notify({
+            Title = "Executed",
+            Content = name .. " loaded successfully.",
+            Duration = 4
+        })
+    else
+        warn("[" .. name .. "] Failed:", err)
+        Rayfield:Notify({
+            Title = "Load Error",
+            Content = "Failed to load " .. name .. ". Check console (F9).",
+            Duration = 5
+        })
+    end
+end
+
+local noKeyScripts = {
+    {
+        Name = "LongHiHi KaiTun Evolution X",
+        Url = "https://raw.githubusercontent.com/nguyenhuuthanhnhan2k11-ai/Redskidhub/refs/heads/main/longhihikaitunevolutionx",
+        BypassCache = false,
+        BeforeRun = function()
+            getgenv().Config = {
+                UI = true,
+                Team = "Marines",
+                FPS = 15,
+                FPSBOOST = false,
+                GOD = true,
+                Saber = true,
+                CDK = true,
+                SkullGuitar = true,
+                RaceV3 = true,
+                AutoSea2 = true,
+                AutoSea3 = true,
+                FarmKatakuri = true,
+                FarmBeautifulPirates = true,
+                PanicMode = {
+                    Enabled = true,
+                    LowHealthPercent = 20,
+                    SafeHealthPercent = 75,
+                    EscapeHeight = 2000,
+                    CheckInterval = 1,
+                },
+                LowGraphics = true,
+                Sword = {
+                    ["Shark Saw"] = true,
+                    ["Wardens Sword"] = true,
+                    ["Pole (1st Form)"] = true,
+                    ["Gravity Blade"] = true,
+                    ["Longsword"] = true,
+                    ["Rengoku"] = true,
+                    ["Flail"] = true,
+                    ["Twin Hooks"] = true,
+                },
+            }
+            Config = getgenv().Config
+        end
+    },
+    { Name = "BNNKaiGodRemanke", Url = "https://raw.githubusercontent.com/LongHiHiScript/Scripts/refs/heads/main/BNNKaiGodRemanke.luau.lua", BypassCache = false },
+    { Name = "BlueX Hub", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = false },
+    { Name = "BananaCat Hub", Url = "https://raw.githubusercontent.com/Chiriku2013/BananaCatHub/refs/heads/main/BananaCatHub.lua", BypassCache = false },
+    { Name = "MTriet Hub", Url = "https://raw.githubusercontent.com/Minhtriettt/Free-Script/main/MTriet-Hub.lua", BypassCache = false },
+    { Name = "AnDepZai Hub", Url = "https://scriptblox.com/raw/Blox-Fruits-AnDepZai-Hub-20511", BypassCache = false },
+    {
+        Name = "LongXGen (Redskidhub)",
+        Url = "https://raw.githubusercontent.com/nguyenhuuthanhnhan2k11-ai/Redskidhub/refs/heads/main/longxgen.lua",
+        BypassCache = false,
+        BeforeRun = function()
+            getgenv().AutoExecute = true
+        end
+    },
+    { Name = "MeoX Hub", Url = "https://raw.githubusercontent.com/VanHoangIOS/MeoXHub/refs/heads/main/Main.lua", BypassCache = false },
+    { Name = "Banana Scythe v3", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Scythe/v3.luau", BypassCache = false },
+    { Name = "Banana Hub (Gojo)", Url = "https://raw.githubusercontent.com/gojosatoru751/scriptdz/refs/heads/main/Bananahub.lua", BypassCache = false },
+    { Name = "Banana v3", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/v3.luau", BypassCache = false },
+    { Name = "BF-CheemBanana", Url = "https://raw.githubusercontent.com/Dev-Meoz/LuaCyder-Meoz/refs/heads/main/BF-CheemBanana.lua", BypassCache = false },
+    { Name = "#01 Arvyn Hub (No Key)", Url = "https://api.luasentry.com/api/scripts/loader/e664cbd4c071c95381797367d7444a7b.lua", BypassCache = true },
+    { Name = "#02 Spiritual Gaming Hub (Keyless)", Url = "https://gist.githubusercontent.com/spiritualgaming1123-beep/f5e5089c5199e13c548c0db7c795d3fa/raw/299c3e094304e0cf2f1338fddb85dd428a23ae97/BloxFruitsHalloween", BypassCache = true },
+    { Name = "#03 Trident Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Trident/run.luau", BypassCache = true },
+    { Name = "#04 Arc Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Arcylic/refs/heads/main/ARC/update.luau", BypassCache = true },
+    { Name = "#05 Aquamarine Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Aquamarine/script.luau", BypassCache = true },
+    { Name = "#08 Ruby Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Ruby/script.lua", BypassCache = true },
+    { Name = "#09 Eclipse Hub", Url = "https://raw.githubusercontent.com/bloxfruitsnokey/Stellar/refs/heads/main/Eclipse/script.luau", BypassCache = true },
+    { Name = "#14 KITE Hub (No Key)", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/KiteLoader", BypassCache = true },
+    { Name = "#16 TurboLite Hub (No Key)", Url = "https://raw.githubusercontent.com/TurboLite/Script/refs/heads/main/MainV2.lua", BypassCache = true },
+    { Name = "#22 Monster Hub (No Key)", Url = "https://raw.githubusercontent.com/giahuy2511-coder/MonsterHub/refs/heads/main/MonsterHubEN", BypassCache = true },
+    { Name = "#25 Ather Hub (Keyless)", Url = "https://api.luarmor.net/files/v4/loaders/2529a5f9dfddd5523ca4e22f21cceffa.lua", BypassCache = true },
+    { Name = "#33 Leaf Hub (No Key)", Url = "https://raw.githubusercontent.com/LeafHubScript/LeafHub/main/LeafHub.lua", BypassCache = true },
+    { Name = "#40 Zee Hub (No Key)", Url = "https://raw.githubusercontent.com/ZeeHubScript/ZeeHub/main/Loader.lua", BypassCache = true },
+    { Name = "#51 Blue X Hub (No Key)", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#65 No Key Mobile", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/KiteLoader", BypassCache = true },
+    { Name = "#70 Zinner Hub (No Key)", Url = "https://raw.githubusercontent.com/HoangNguyenk8/Scripts/refs/heads/main/Loader.lua", BypassCache = true },
+    { Name = "#81 Strawberry (No Key)", Url = "https://raw.githubusercontent.com/StrawberryHubScript/Strawberry/main/Loader.lua", BypassCache = true },
+    { Name = "#82 No Key Pastebin Aimbot", Url = "https://pastebin.com/raw/uECLqG3j", BypassCache = true },
+    { Name = "#95 MTriet Hub", Url = "https://raw.githubusercontent.com/Minhtriettt/Free-Script/main/MTriet-Hub.lua", BypassCache = true },
+    {
+        Name = "#97 REDz Hub Mobile",
+        Url = "https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().JoinTeam = "Pirates"
+            getgenv().Translator = true
+        end
+    },
+}
+
+local keyScripts = {
+    { Name = "Pastebin Script (yL0smCmb)", Url = "https://pastebin.com/raw/yL0smCmb", BypassCache = true },
+    { Name = "#06 VoidHub", Url = "https://voidon.top/api/loader/main", BypassCache = true },
+    { Name = "#07 Gravity Hub", Url = "https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#10 True Hub", Url = "https://luaegis.net/scripts/v4/loaders/08f7c7f0-7917-4a53-99b5-84ae0dec28a9.lua", BypassCache = true },
+    { Name = "#11 NEVA Hub", Url = "https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2", BypassCache = true },
+    { Name = "#12 Flow Hub", Url = "https://api.luarmor.net/files/v4/loaders/5946add9ab91f1e04cb005346a8b1968.lua", BypassCache = true },
+    {
+        Name = "#13 NightMystic Hub",
+        Url = "https://raw.githubusercontent.com/Dev-NightMystic/Bloxfruits/refs/heads/main/Script.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().team = "Marines"
+        end
+    },
+    { Name = "#15 Xynapse Hub", Url = "https://pastebin.com/raw/uECLqG3j", BypassCache = true },
+    { Name = "#17 Solix Hub", Url = "https://raw.githubusercontent.com/meobeo8/a/a/a", BypassCache = true },
+    {
+        Name = "#20 Midnight Hub",
+        Url = "https://raw.githubusercontent.com/Ohofo2279/Midnight/refs/heads/main/MidnightX-BloxFruits.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Team = "Pirates"
+        end
+    },
+    { Name = "#23 Novus Hub", Url = "https://api.luarmor.net/files/v3/loaders/14f9e9054b916dc305c310f9549a5272.lua", BypassCache = true },
+    { Name = "#24 Relz Hub", Url = "https://relzhub.farrelghibran.com/loader.lua", BypassCache = true },
+    { Name = "#26 Annie Hub", Url = "https://raw.githubusercontent.com/Anniecreate86/BloxFruits/refs/heads/main/BetaHub-BF", BypassCache = true },
+    {
+        Name = "#27 Dragon Hub",
+        Url = "https://raw.githubusercontent.com/dragonhubdev/dragonwitheveryone/refs/heads/main/Main-BF.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().team = "Pirates"
+        end
+    },
+    { Name = "#29 Meo X Hub", Url = "https://raw.githubusercontent.com/VanHoangIOS/MeoXHub/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#30 Teddy Hub", Url = "https://raw.githubusercontent.com/Teddyseetink/Haidepzai/refs/heads/main/TeddyHub.lua", BypassCache = true },
+    { Name = "#31 MatsuneHub", Url = "https://raw.githubusercontent.com/AnDepZaiHub/AnDepZai/main/MatsuneHub.lua", BypassCache = true },
+    { Name = "#32 Zynex Hub", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/ZynHub", BypassCache = true },
+    { Name = "#34 King Rua Hub", Url = "https://raw.githubusercontent.com/KingRuaHub/KingRua/main/Loader.lua", BypassCache = true },
+    { Name = "#35 Night Hub", Url = "https://raw.githubusercontent.com/NightHubScript/NightHub/main/Loader.lua", BypassCache = true },
+    {
+        Name = "#36 Xeter Hub GUI",
+        Url = "https://raw.githubusercontent.com/TlDinhKhoi/Xeter/refs/heads/main/Main.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Version = "V1"
+            getgenv().Team = "Marines"
+        end
+    },
+    { Name = "#37 QuantumOnyx Hub", Url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua", BypassCache = true },
+    { Name = "#38 Apple Hub", Url = "https://raw.githubusercontent.com/AppleHubScript/AppleHub/main/Loader.lua", BypassCache = true },
+    { Name = "#39 Cookie Hub", Url = "https://raw.githubusercontent.com/Jadelly261/BloxFruits/refs/heads/main/Cookie", BypassCache = true },
+    { Name = "#41 Zyn Hub", Url = "https://raw.githubusercontent.com/GoblinKun009/Script/refs/heads/main/ZynHub", BypassCache = true },
+    { Name = "#42 NazuX Hub", Url = "https://raw.githubusercontent.com/NazuXHub/NazuX/main/Loader.lua", BypassCache = true },
+    { Name = "#43 Best Blox Fruits Script", Url = "https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau", BypassCache = true },
+    { Name = "#44 Vector HUB", Url = "https://raw.githubusercontent.com/AAwful/Vector_Hub/0/v2", BypassCache = true },
+    { Name = "#45 Auto Cash Farm", Url = "https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#46 Foggy Hub", Url = "https://raw.githubusercontent.com/FoggyHubScript/FoggyHub/main/Loader.lua", BypassCache = true },
+    { Name = "#47 Teddy Hub", Url = "https://raw.githubusercontent.com/Teddyseetink/Haidepzai/refs/heads/main/TeddyHub.lua", BypassCache = true },
+    {
+        Name = "#48 Best Auto Farm (RedzHub)",
+        Url = "https://raw.githubusercontent.com/newredz/BloxFruits/refs/heads/main/Source.luau",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().JoinTeam = "Pirates"
+            getgenv().Translator = true
+        end
+    },
+    {
+        Name = "#49 Xeter Hub Mobile",
+        Url = "https://raw.githubusercontent.com/TlDinhKhoi/Xeter/refs/heads/main/Main.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Version = "V1"
+            getgenv().Team = "Pirates"
+        end
+    },
+    { Name = "#50 DatThg Hub", Url = "https://raw.githubusercontent.com/DatThgVN/DatThgHub/main/DatThgV4.lua", BypassCache = true },
+    { Name = "#52 XeraUltron", Url = "https://raw.githubusercontent.com/XeraUltron/BloxFruits/main/Loader.lua", BypassCache = true },
+    { Name = "#53 Volcano Hub v3", Url = "https://raw.githubusercontent.com/indexeduu/BF-NewVer/refs/heads/main/V3New.lua", BypassCache = true },
+    { Name = "#54 Nat Hub", Url = "https://raw.githubusercontent.com/NatHubScript/NatHub/main/Loader.lua", BypassCache = true },
+    { Name = "#55 Vxeze Hub", Url = "https://raw.githubusercontent.com/Dex-Bear/Vxezehub/refs/heads/main/Skidlamcho.txt", BypassCache = true },
+    { Name = "#56 Quantum Onyx Hub Mobile", Url = "https://raw.githubusercontent.com/flazhy/QuantumOnyx/refs/heads/main/QuantumOnyx.lua", BypassCache = true },
+    { Name = "#57 Mod Attack Hub", Url = "https://raw.githubusercontent.com/ModAttackHub/ModAttack/main/Loader.lua", BypassCache = true },
+    { Name = "#58 New Script Mobile", Url = "https://raw.githubusercontent.com/TurboLite/Script/refs/heads/main/MainV2.lua", BypassCache = true },
+    { Name = "#59 Zen Hub", Url = "https://raw.githubusercontent.com/ZenHubScript/ZenHub/main/Loader.lua", BypassCache = true },
+    { Name = "#60 EgoHub GUI", Url = "https://raw.githubusercontent.com/EgoHubScript/EgoHub/main/Loader.lua", BypassCache = true },
+    { Name = "#61 Mobile Auto Farm Lvl", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#62 Hack Auto Farm", Url = "https://raw.githubusercontent.com/Dev-GravityHub/BloxFruit/refs/heads/main/Main.lua", BypassCache = true },
+    { Name = "#63 Nicuse Blox Fruits", Url = "https://raw.githubusercontent.com/NicuseScript/Nicuse/main/Loader.lua", BypassCache = true },
+    { Name = "#64 Tsuo Hub", Url = "https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/bloxfruits", BypassCache = true },
+    { Name = "#66 NatHub Chest Farm", Url = "https://raw.githubusercontent.com/NatHubScript/NatHub/main/Chest.lua", BypassCache = true },
+    { Name = "#67 RoHub", Url = "https://raw.githubusercontent.com/RoHubScript/RoHub/main/Loader.lua", BypassCache = true },
+    {
+        Name = "#68 Maru Copy Hub",
+        Url = "https://raw.githubusercontent.com/LuaCrack/KimP/refs/heads/main/MaruHub",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Team = "Marines"
+        end
+    },
+    {
+        Name = "#69 Quartyz Hub",
+        Url = "https://raw.githubusercontent.com/xQuartyx/QuartyzScript/main/Loader.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Mode = "OneClick"
+        end
+    },
+    { Name = "#71 Monster Hub Mobile", Url = "https://raw.githubusercontent.com/giahuy2511-coder/MonsterHub/refs/heads/main/MonsterHubEN", BypassCache = true },
+    { Name = "#72 Mukuro Hub", Url = "https://raw.githubusercontent.com/MukuroHubScript/Mukuro/main/Loader.lua", BypassCache = true },
+    { Name = "#73 TheBillDevHub", Url = "https://raw.githubusercontent.com/TheBillDevHub/TheBillDev/main/Loader.lua", BypassCache = true },
+    { Name = "#74 Forge Hub", Url = "https://raw.githubusercontent.com/ForgeHubScript/ForgeHub/main/Loader.lua", BypassCache = true },
+    { Name = "#75 Ronix Hub", Url = "https://raw.githubusercontent.com/RonixHubScript/Ronix/main/Loader.lua", BypassCache = true },
+    { Name = "#76 Lumin Hub", Url = "https://raw.githubusercontent.com/LuminHubScript/Lumin/main/Loader.lua", BypassCache = true },
+    { Name = "#77 Ziner Hub Mobile", Url = "https://raw.githubusercontent.com/HoangNguyenk8/Scripts/refs/heads/main/Loader.lua", BypassCache = true },
+    { Name = "#78 PC Auto Farm GUI (Solara)", Url = "https://raw.githubusercontent.com/TurboLite/Script/refs/heads/main/MainV2.lua", BypassCache = true },
+    { Name = "#79 Lap Hub", Url = "https://raw.githubusercontent.com/LapHubScript/LapHub/main/Loader.lua", BypassCache = true },
+    { Name = "#80 Master Hub Mobile", Url = "https://raw.githubusercontent.com/MasterHubScript/MasterHub/main/Loader.lua", BypassCache = true },
+    { Name = "#83 Rise Hub", Url = "https://raw.githubusercontent.com/RiseHubScript/RiseHub/main/Loader.lua", BypassCache = true },
+    { Name = "#84 Experience Hub", Url = "https://raw.githubusercontent.com/ExperienceHubScript/Experience/main/Loader.lua", BypassCache = true },
+    { Name = "#85 Redeem Codes & Farm Mobs", Url = "https://raw.githubusercontent.com/Dev-BlueX/BlueX-Hub/refs/heads/main/Main.lua", BypassCache = true },
+    {
+        Name = "#86 Auto Kaitun Script",
+        Url = "https://raw.githubusercontent.com/xQuartyx/QuartyzScript/main/Loader.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Mode = "OneClick"
+        end
+    },
+    { Name = "#87 AnDepZai Hub", Url = "https://scriptblox.com/raw/Blox-Fruits-AnDepZai-Hub-20511", BypassCache = true },
+    { Name = "#88 Cokka Hub", Url = "https://raw.githubusercontent.com/CokkaHubScript/CokkaHub/main/Loader.lua", BypassCache = true },
+    {
+        Name = "#89 Xero Hub",
+        Url = "https://raw.githubusercontent.com/Xero2409/XeroHub/refs/heads/main/main.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().Team = "Marines"
+            getgenv().Hide_Menu = false
+        end
+    },
+    { Name = "#90 Infinite Hub", Url = "https://raw.githubusercontent.com/InfiniteHubScript/Infinite/main/Loader.lua", BypassCache = true },
+    { Name = "#91 Auto Bounty Script", Url = "https://raw.githubusercontent.com/Dev-NightMystic/Bloxfruits/refs/heads/main/Script.lua", BypassCache = true },
+    { Name = "#92 Spectrum Hub", Url = "https://raw.githubusercontent.com/SpectrumHubScript/Spectrum/main/Loader.lua", BypassCache = true },
+    { Name = "#93 Dominance Hub", Url = "https://raw.githubusercontent.com/DominanceHubScript/Dominance/main/Loader.lua", BypassCache = true },
+    { Name = "#94 Chest Farm Script", Url = "https://raw.githubusercontent.com/NatHubScript/NatHub/main/Chest.lua", BypassCache = true },
+    { Name = "#96 OMG Hub", Url = "https://raw.githubusercontent.com/OmgHubScript/OmgHub/main/Loader.lua", BypassCache = true },
+    { Name = "#98 Alchemy Hub", Url = "https://raw.githubusercontent.com/AlchemyHubScript/Alchemy/main/Loader.lua", BypassCache = true },
+    { Name = "#99 Annie Hub Mobile", Url = "https://raw.githubusercontent.com/Anniecreate86/BloxFruits/refs/heads/main/BetaHub-BF", BypassCache = true },
+}
+
+for _, item in ipairs(noKeyScripts) do
+    NoKeyTab:CreateButton({
+        Name = item.Name,
+        Callback = function()
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun)
+        end
+    })
+end
+
+for _, item in ipairs(keyScripts) do
+    KeyTab:CreateButton({
+        Name = item.Name,
+        Callback = function()
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun)
+        end
+    })
+end
