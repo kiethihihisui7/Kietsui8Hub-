@@ -176,10 +176,17 @@ end
 
 createFloatingToggle()
 
-local function runRemoteScript(name, url, bypassCache, beforeRun)
+local function runRemoteScript(name, url, bypassCache, beforeRun, customCode)
     local success, err = pcall(function()
         if type(beforeRun) == "function" then
             beforeRun()
+        end
+        if type(customCode) == "string" then
+            local fn = loadstring(customCode)
+            if type(fn) ~= "function" then
+                error("Invalid custom Lua chunk")
+            end
+            return fn()
         end
         local source = bypassCache and game:HttpGet(url, true) or game:HttpGet(url)
         local fn = loadstring(source)
@@ -448,11 +455,122 @@ local keyScripts = {
     { Name = "#99 Annie Hub Mobile", Url = "https://raw.githubusercontent.com/Anniecreate86/BloxFruits/refs/heads/main/BetaHub-BF", BypassCache = true },
 }
 
+-- Mục Ném thức ăn cho động vật (Throw Food For Animals) - Bên No Key
+local throwFoodNoKeyScripts = {
+    { Name = "#04 Keyless (Instant Throw, Train x2)", Url = "https://raw.githubusercontent.com/caubebietbuon/Misozz/main/Adonis.lua", BypassCache = true },
+    { Name = "#08 Akkiwi Hub (NO KEY)", Url = "https://akkiwi.com/h", BypassCache = true },
+    { Name = "#10 Serenity Hub (NO KEY)", Url = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/loader.lua", BypassCache = true },
+}
+
+-- Mục Ném thức ăn cho động vật (Throw Food For Animals) - Bên Có Key
+local throwFoodKeyScripts = {
+    { Name = "#01 Lggy Hub", Url = "https://api.jnkie.com/api/v1/loaders/public/048b576325b24a8494d2d53a94bf9325b15019d3001827cfe8ea14f07a620654/download", BypassCache = true },
+    { Name = "#02 Patch Hub Free", Url = "https://raw.githubusercontent.com/patch-ez/patch-hub/main/loader.lua", BypassCache = true },
+    { Name = "#03 Raxor Hub", Url = "https://api.luarmor.net/files/v4/loaders/b0a1eeb90ca56fe8b2dfff7743a8fdad.lua", BypassCache = true },
+    { Name = "#05 Zero Point Hub", Url = "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem", BypassCache = true },
+    { Name = "#06 PepiGuzman Hub", Url = "https://pastebin.com/raw/x0qcPcxU", BypassCache = true },
+    { Name = "#07 Moondiety Hub", Url = "https://moondiety.com/loader", BypassCache = true },
+    { Name = "#09 AZOTH Hub", Url = "https://raw.githubusercontent.com/Azoth666/AZOTH/main/loader.lua", BypassCache = true },
+    { Name = "#11 School Hub", Url = "https://raw.githubusercontent.com/suzukir987/School-Hub/main/loader.lua", BypassCache = true },
+    { Name = "#12 Noctarion Hub", Url = "https://nhmain.vercel.app/Loader/Main.lua", BypassCache = true },
+    { Name = "#13 Mystrix Hub", Url = "https://raw.githubusercontent.com/ummarxfarooq/mystrix-hub/refs/heads/main/loader", BypassCache = true },
+    {
+        Name = "#14 CM Hub",
+        BypassCache = true,
+        CustomCode = [[loadstring((request or http_request)({Url="https://cmhub-key-system.cmhub.workers.dev/l.lua"}).Body)()]]
+    },
+    { Name = "#15 ToraHub", Url = "https://raw.githubusercontent.com/gumanba/Scripts/main/ThrowFoodForAnimals", BypassCache = true },
+    { Name = "#16 Roxys Hub", Url = "https://api.jnkie.com/api/v1/luascripts/public/021697ee14ffbaeaa247075822d1c27906f2742fccbc387062e9ce8e60914bfd/download", BypassCache = true },
+    { Name = "#17 Spiritual Gaming Hub", Url = "https://gist.githubusercontent.com/spiritualgaming1123-beep/406eaafbbe879515ecbfd70ecb89ca59/raw/b059768ae36bf90775b5bd4d183b8494bed95a76/ThrowFoodForAnimals", BypassCache = true },
+    { Name = "#18 Ouroboros Hub", Url = "https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua", BypassCache = true },
+}
+
+-- Mục Steal an Egg (1 -> 47) - Bên No Key
+local stealAnEggNoKeyScripts = {
+    { Name = "#03 Akkiwi Hub (Keyless)", Url = "https://akkiwi.com/h", BypassCache = true },
+    { Name = "#07 Venyx Hub Keyless", Url = "https://raw.githubusercontent.com/tienkhanh1/Venyx/main/VenyxHub", BypassCache = true },
+    { Name = "#10 Pulse Hub No Key", Url = "https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua", BypassCache = true },
+    { Name = "#11 Nox SAE Hub Keyless", Url = "https://noxscript.com/loader", BypassCache = true },
+    { Name = "#12 CloutHub Keyless", Url = "https://raw.githubusercontent.com/ClouthubOnTop/Loader/main/main.lua", BypassCache = true },
+    { Name = "#22 Chilli Hub (NO KEY)", Url = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", BypassCache = true },
+    { Name = "#24 Nevahub No Key", Url = "https://raw.githubusercontent.com/VEZ2/NEVAHUB/main/2", BypassCache = true },
+    { Name = "#42 Keyless (ZeroPoint)", Url = "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem", BypassCache = true },
+    { Name = "#47 Ouroboros Hub (NO KEY)", Url = "https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua", BypassCache = true },
+}
+
+-- Mục Steal an Egg (1 -> 47) - Bên Có Key
+local stealAnEggKeyScripts = {
+    { Name = "#01 FiggyHub", Url = "https://raw.githubusercontent.com/Figgyscript/Figgy/main/Figgyhub", BypassCache = true },
+    { Name = "#02 Figgy Hub", Url = "https://raw.githubusercontent.com/Figgyscript/Figgy/main/Figgyhub", BypassCache = true },
+    { Name = "#04 Tenshi Hub", Url = "https://raw.githubusercontent.com/syss1211/Tenshi-script/main/NYX.lua", BypassCache = true },
+    { Name = "#05 Linkhive Hub", Url = "https://raw.githubusercontent.com/afkar-gg/sc/refs/heads/main/Linkhive/Steal-An-Egg/main.lua", BypassCache = true },
+    { Name = "#06 Zeroin Hub", Url = "https://zeroinhub.com/api/script", BypassCache = true },
+    { Name = "#08 BigFroot", Url = "https://raw.githubusercontent.com/hanniii1/Loader/refs/heads/main/BFLoader.lua", BypassCache = true },
+    { Name = "#09 No-Lag Hub", Url = "https://nolag.wtf/script.lua", BypassCache = true },
+    { Name = "#13 Polluted Hub", Url = "https://raw.githubusercontent.com/PollutedHub/Sae/refs/heads/main/SaePolluted", BypassCache = true },
+    { Name = "#14 SourceHub", Url = "https://pastefy.app/Lk0vDMmN/raw", BypassCache = true },
+    { Name = "#15 Limbo Hub", Url = "https://limbohub.my.id/loader.lua", BypassCache = true },
+    { Name = "#16 DryNyx Hub", Url = "https://synex.lat/loaders/stealegg.lua", BypassCache = true },
+    { Name = "#17 PulseHub", Url = "https://raw.githubusercontent.com/PulseZax/Loader/refs/heads/main/.lua", BypassCache = true },
+    { Name = "#18 Kira Hub", Url = "https://raw.githubusercontent.com/LSSOPS/OpenSource/refs/heads/main/KiraHub_Steal_An_Egg.lua", BypassCache = true },
+    { Name = "#19 CM Hub", Url = "https://cmhub-key-system.vercel.app/roblox/loader.lua", BypassCache = true },
+    { Name = "#20 Yokudo Hub", Url = "https://raw.githubusercontent.com/betdoyvaka/stealanegg/main/Loader.lua", BypassCache = true },
+    { Name = "#21 ClouthHub", Url = "https://raw.githubusercontent.com/ClouthubOnTop/Loader/main/main.lua", BypassCache = true },
+    { Name = "#25 Jane Hub", Url = "https://flowauth.net/v1/loaders/b88a6143b351d79f4c5a108ec33b5a2c.lua", BypassCache = true },
+    { Name = "#26 Tsuo Hub", Url = "https://raw.githubusercontent.com/Tsuo7/TsuoHub/main/stealanegg", BypassCache = true },
+    { Name = "#27 UB Hub", Url = "https://raw.githubusercontent.com/TeamUBHub/UBLoader/refs/heads/main/Loader.lua", BypassCache = true },
+    { Name = "#28 Sena Hub", Url = "https://raw.githubusercontent.com/senarblx/sena/refs/heads/main/loader", BypassCache = true },
+    { Name = "#29 BlyxoHu Hub", Url = "https://flowauth.net/v1/loaders/69d3463240384f3a73fbe32c178093a2.lua", BypassCache = true },
+    { Name = "#30 Oxide Hub", Url = "https://raw.githubusercontent.com/xulfo/Oxide-Loader/main/Main.lua", BypassCache = true },
+    { Name = "#31 Axon Hub", Url = "https://api.luarmor.net/files/v3/loaders/97c3f6db55a2cf72141537a85458e5a7.lua", BypassCache = true },
+    { Name = "#32 Miranda Hub", Url = "https://raw.githubusercontent.com/miirandahub/loader/refs/heads/main/stealaegg", BypassCache = true },
+    { Name = "#33 Lennon Hub", Url = "https://api.jnkie.com/api/v1/luascripts/public/bf52181bce5c28e6ecd16eebfa1a88ddaf646c7acb10015fbaa7b30dc7bad0a8/download", BypassCache = true },
+    { Name = "#34 OMG Hub", Url = "https://raw.githubusercontent.com/Omgshit/Scripts/main/MainLoader.lua", BypassCache = true },
+    { Name = "#35 Best FoxName Hub", Url = "https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Fn-stealanegg.lua", BypassCache = true },
+    { Name = "#36 ZeroPoint Hub", Url = "https://raw.githubusercontent.com/JaxRol/ZeroPoint/refs/heads/main/KeySystem", BypassCache = true },
+    { Name = "#37 Rift Hub", Url = "https://rifton.top/loader.lua", BypassCache = true },
+    { Name = "#38 CloverHub", Url = "https://raw.githubusercontent.com/Ryuun0x/Clover/main/main.lua", BypassCache = true },
+    { Name = "#39 ToolBox Hub", Url = "https://raw.githubusercontent.com/Abdullahking20/loader-lua/main/loader", BypassCache = true },
+    { Name = "#40 Pig Hub", Url = "https://raw.githubusercontent.com/mopsscript7-gif/steal-an-egg/refs/heads/main/script.lua", BypassCache = true },
+    { Name = "#41 Ovei Hub", Url = "https://api.jnkie.com/api/v1/luascripts/public/f0b3ce85f588800ae7e46415fc4dd79ff2b0d09c9b6a8e19cea8a67b47f1bcbd/download", BypassCache = true },
+    { Name = "#43 SolixHub", Url = "https://solixhub.com/loader", BypassCache = true },
+    { Name = "#44 ChronixHub", Url = "https://raw.githubusercontent.com/SmokeTY/Hidden-Scripts/main/Chronix%20Hub", BypassCache = true },
+    { Name = "#45 AJJANS Hub", Url = "https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua", BypassCache = true },
+    {
+        Name = "#46 Speed X Hub",
+        Url = "https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua",
+        BypassCache = true,
+        BeforeRun = function()
+            getgenv().ForceBypassCache = true
+        end
+    },
+}
+
 for _, item in ipairs(noKeyScripts) do
     NoKeyTab:CreateButton({
         Name = item.Name,
         Callback = function()
-            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun)
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun, item.CustomCode)
+        end
+    })
+end
+
+NoKeyTab:CreateSection("Ném thức ăn cho động vật (No Key)")
+for _, item in ipairs(throwFoodNoKeyScripts) do
+    NoKeyTab:CreateButton({
+        Name = item.Name,
+        Callback = function()
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun, item.CustomCode)
+        end
+    })
+end
+
+NoKeyTab:CreateSection("Steal an Egg (No Key)")
+for _, item in ipairs(stealAnEggNoKeyScripts) do
+    NoKeyTab:CreateButton({
+        Name = item.Name,
+        Callback = function()
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun, item.CustomCode)
         end
     })
 end
@@ -461,7 +579,27 @@ for _, item in ipairs(keyScripts) do
     KeyTab:CreateButton({
         Name = item.Name,
         Callback = function()
-            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun)
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun, item.CustomCode)
+        end
+    })
+end
+
+KeyTab:CreateSection("Ném thức ăn cho động vật (Có Key)")
+for _, item in ipairs(throwFoodKeyScripts) do
+    KeyTab:CreateButton({
+        Name = item.Name,
+        Callback = function()
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun, item.CustomCode)
+        end
+    })
+end
+
+KeyTab:CreateSection("Steal an Egg (Có Key)")
+for _, item in ipairs(stealAnEggKeyScripts) do
+    KeyTab:CreateButton({
+        Name = item.Name,
+        Callback = function()
+            runRemoteScript(item.Name, item.Url, item.BypassCache, item.BeforeRun, item.CustomCode)
         end
     })
 end
